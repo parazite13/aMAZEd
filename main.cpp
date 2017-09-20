@@ -22,6 +22,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    cout << "coucou" <<endl;
+
     namedWindow("Window", WINDOW_AUTOSIZE); // Create a window for display.
     imshow("Window", frame); // Show our image inside it.
 
