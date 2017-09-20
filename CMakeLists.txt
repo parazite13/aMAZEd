@@ -12,7 +12,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 add_executable(aMAZEd main.cpp)
 
 # add OpenCV libs
-set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs)
+set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs opencv_videoio)
 
 # linking
 target_link_libraries(aMAZEd ${OpenCV_LIBS})

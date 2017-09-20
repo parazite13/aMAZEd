@@ -1,31 +1,32 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <iostream>
 
 using namespace std;
 using namespace cv;
 
 int main(int argc, char** argv)
-{
-    if(argc != 2)
-    {
-        cout << "Usage: aMAZEd ImageToLoadAndDisplay" << endl;
-        return -1;
-    }
+ {
 
-    Mat frame;
-    frame = imread(argv[1], IMREAD_COLOR); // Read the file
+     VideoCapture cap(0); // open the default camera
+     if(!cap.isOpened())  // check if we succeeded
+         return -1;
 
-    if(!frame.data) // Check for invalid input
-    {
-        cout << "Could not open or find the frame" << endl;
-        return -1;
-    }
-    
+     Mat edges;
+     namedWindow("edges",1);
+     while(true)
+     {
+         Mat frame;
+         cap >> frame; // get a new frame from camera
+         //cvtColor(frame, edges, CV_BGR2GRAY);
+         //GaussianBlur(edges, edges, Size(7,7), 1.5, 1.5);
+         //Canny(edges, edges, 0, 30, 3);
+         imshow("edges", frame);
+         waitKey(30);
+     }
 
-    namedWindow("Window", WINDOW_AUTOSIZE); // Create a window for display.
-    imshow("Window", frame); // Show our image inside it.
+     // the camera will be deinitialized automatically in VideoCapture destructor
+     return 0;
 
-    waitKey(0); // Wait for a keystroke in the window
-    return 0;
 }
