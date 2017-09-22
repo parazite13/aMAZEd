@@ -1,7 +1,6 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <iostream>
+#include "analyse/EdgeDetection.h"
 
 using namespace std;
 using namespace cv;
@@ -19,7 +18,9 @@ int main(int argc, char** argv)
      {
          Mat frame;
          capture >> frame; // get a new frame from camera
-         
+
+         Point coord[125] ;
+         EdgeDetection::cornersDetection(frame, 200/*, coord*/ );
          imshow("Capture", frame);
 
          // Quitte l'application lorsqu'on appuie sur Echap
