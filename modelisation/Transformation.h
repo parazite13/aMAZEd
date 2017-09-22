@@ -6,7 +6,7 @@
 class Transformation {
 
 public:
-    static cv::Mat getHomographyMatrix(float matrix[], const cv::Point2f inputQuad[], const cv::Size size);
+    static void getHomographyMatrix(float matrix[], const cv::Point2f inputQuad[], const cv::Size size);
 
 
 };

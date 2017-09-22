@@ -13,7 +13,7 @@ using namespace std;
  * @param outputQuad: The 4 points where the mapping is to be done , from top-left in clockwise order
  * @param size
  */
-Mat Transformation::getHomographyMatrix(float matrix[], const cv::Point2f outputQuad[], const Size size) {
+void Transformation::getHomographyMatrix(float matrix[], const cv::Point2f outputQuad[], const Size size) {
 
     // Input Quadilateral or Image plane coordinates
     Point2f inputQuad[4];
@@ -35,16 +35,27 @@ Mat Transformation::getHomographyMatrix(float matrix[], const cv::Point2f output
 
     // Get the Perspective Transform Matrix i.e. lambda
     lambda = getPerspectiveTransform(inputQuad, outputQuad);
-    // Apply the Perspective Transform just found to the src image
 
-    cout << lambda << endl;
+    cout << lambda << endl << endl;
 
-    for(int i = 0; i < lambda.rows; i++){
-        for(int j = 0; j < lambda.cols; j++){
-            matrix[i * lambda.cols + j] = (float)lambda.at<double>(i, j);
-        }
-    }
+    matrix[0] = (float)lambda.at<double>(0, 0);
+    matrix[1] = (float)lambda.at<double>(0, 1);
+    matrix[2] = 0.0;
+    matrix[3] = (float)lambda.at<double>(0, 2);
 
-    return lambda;
+    matrix[4] = (float)lambda.at<double>(1, 0);
+    matrix[5] = (float)lambda.at<double>(1, 1);
+    matrix[6] = 0.0;
+    matrix[7] = (float)lambda.at<double>(1, 2);
+
+    matrix[8] = 0.0;
+    matrix[9] = 0.0;
+    matrix[10] = 1.0;
+    matrix[11] = 0.0;
+
+    matrix[12] = (float)lambda.at<double>(2, 0);
+    matrix[13] = (float)lambda.at<double>(2, 1);
+    matrix[14] = 0.0;
+    matrix[15] = (float)lambda.at<double>(2, 2);
 
 }
