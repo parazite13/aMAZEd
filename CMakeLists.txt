@@ -9,7 +9,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(aMAZEd main.cpp)
+add_executable(aMAZEd main.cpp analyse/EdgeDetection.cpp analyse/EdgeDetection.h)
 
 # add OpenCV libs
 set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs opencv_videoio)

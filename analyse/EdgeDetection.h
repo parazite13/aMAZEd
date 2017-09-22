@@ -9,6 +9,11 @@
 class EdgeDetection {
 
 public:
+    /* détecte les angles dans une image
+     * @params
+     *      img : l'image où trouver les angles
+     *      thresh : seuil de détection
+     * */
     static void cornersDetection(cv::Mat img, int thresh/*, cv::Point coord[]*/);
 
 };
