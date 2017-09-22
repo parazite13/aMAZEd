@@ -14,7 +14,8 @@ public:
      *      img : l'image où trouver les angles
      *      thresh : seuil de détection
      * */
-    static void cornersDetection(cv::Mat img, int thresh/*, cv::Point coord[]*/);
+    //static void cornersDetection(cv::Mat img, int thresh/*, cv::Point coord[]*/);
+    static void colorDetection(cv::Mat img);
 
 };
 
