@@ -6,15 +6,16 @@
 #include <opencv2/imgproc.hpp>
 #include <iostream>
 
+
 class CameraStream {
 private:
     cv::VideoCapture capture;
-
 public:
     CameraStream();
     bool isOpen();
     void showCamera();
     cv::Mat getCurrentFrame();
+    void getDesktopResolution(int& , int& );
 };
 
 
