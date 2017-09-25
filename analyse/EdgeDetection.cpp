@@ -49,41 +49,49 @@ void EdgeDetection::cornersDetection(cv::Mat img, int thresh){
 }
 
 */
-void EdgeDetection::linesDetection(cv::Mat img, int thresh){
-    /// détection des contours avec canny
-    cv::Mat img2;
-    cv::Canny(img, img2, 50, thresh, 3);
+std::vector<std::vector<cv::Point2f>> EdgeDetection::linesDetection(cv::Mat img, int thresh){
+    /// détection des contours avec Canny
+    cv::Mat imgCanny;
+    cv::Canny(img, imgCanny, 100, 200, 3);
+
+//    cv::namedWindow("Canny",cv::WINDOW_AUTOSIZE);
+//    cv::imshow("Canny", imgCanny);
 
     /// detection des lignes dans le vect lines
-  /* std::vector<cv::Vec2f> lines;
-    HoughLines( img2, lines, 1, CV_PI/180, 100 );
 
-    for( size_t i = 0; i < lines.size(); i++ )
-    {
-        float rho = lines[i][0];
-        float theta = lines[i][1];
-        double a = cos(theta), b = sin(theta);
-        double x0 = a*rho, y0 = b*rho;
-        cv::Point pt1(cvRound(x0 + 1000*(-b)),
-                  cvRound(y0 + 1000*(a)));
-        cv::Point pt2(cvRound(x0 - 1000*(-b)),
-                  cvRound(y0 - 1000*(a)));
-        line( img, pt1, pt2, cv::Scalar(0,0,255), 3, 8 );
-    }*/
+    /// vecteur dans lequel sont stockées les lignes
+    ///     lignes stockées sous la forme (x1,y1,x2,y2)
     std::vector<cv::Vec4i> lines;
+
     /// houghLinesP(imgsource,
     /// vectdest,
     /// distance resolution en pixels
     /// angle resolution en rad
     /// seuil
-    /// min longeur
+    /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
-    HoughLinesP(img2, lines, 1, CV_PI/180, 100, 50, 25 );
-    for( size_t i = 0; i < lines.size(); i++ )
-    {
+    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 100, 20, 25);
+
+    /// tableau de couples de points
+    std::vector<std::vector<cv::Point2f>> vectLines;
+
+    for( size_t i = 0; i < lines.size(); i++ ){
+        /// récupération d'une ligne
         cv::Vec4i l = lines[i];
-        cv::line( img, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,0,255), 1, CV_AA);
+
+        /// couple de points
+        std::vector<cv::Point2f> vectPoints ;
+        vectPoints.push_back(cv::Point2f(l[0], l[1]));
+        vectPoints.push_back(cv::Point2f(l[2], l[3]));
+
+        /// ajout du couple au tableau
+        vectLines.push_back(vectPoints) ;
+
+        ///tracé de la ligne
+        cv::line( img, vectPoints[0], vectPoints[1], cv::Scalar(0,0,255), 1, CV_AA);
     }
+
+    return(vectLines);
 }
 
 
