@@ -5,8 +5,10 @@
 using namespace std;
 using namespace cv;
 
+///Récupération de l'image d'origine
 extern Mat frame;
-
+///Déclaration de la teinte (h) et de la saturation (s) pour le format hsv
+int h, s;
 /*
 void EdgeDetection::cornersDetection(Mat img, int thresh){
     Mat imgGrey;
@@ -111,20 +113,17 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
 
 void EdgeDetection::colorDetection(Mat img) {
     ///Conversion en hsv
-    Mat hsv;
-    cvtColor(img, hsv, CV_BGR2HSV);
+    cvtColor(img, this->hsv, CV_BGR2HSV);
 
     ///Création d'un masque
     Mat mask;
 
-    ///Si le pixel de l'image original à un h et un s proche de celui recharché on colorie l'image "mask" en blanc, autrement en noir
-    int h = 346;
-    int s = 83;
-    int toleranceh = 4;
-    int tolerances = 17;
-    inRange(hsv, Scalar(h-toleranceh-1, s-tolerances, 0), Scalar(h+toleranceh -1, s+tolerances, 255), mask);
 
-    cvtColor(img, this->hsv, CV_BGR2HSV);
+    ///réglage des seuils de tolérance
+    int toleranceh = 10;
+    int tolerances = 30;
+    ///affichage de l'image suivant les seuils de tolérance
+    inRange(hsv, Scalar(h-toleranceh-1, s-tolerances, 0), Scalar(h+toleranceh -1, s+tolerances, 255), mask);
 
     ///Permet de suprimer les parasites
     Mat kernel;
@@ -133,7 +132,7 @@ void EdgeDetection::colorDetection(Mat img) {
     dilate(mask, mask, kernel);
     erode(mask, mask, kernel);
 
-    ///
+    ///Action bouton souri
     setMouseCallback("Frame", getObjectColor);
 
     ///affiche l'image en noir et blanc
@@ -147,7 +146,8 @@ void EdgeDetection::getObjectColor(int event, int x, int y, int flags, void *par
     ///Conversion en hsv
     cvtColor(frame, hsv, CV_BGR2HSV);
     if(event == CV_EVENT_LBUTTONUP) {
-        std::cout << hsv.at<Vec3b>(y, x) << std::endl;
+        h = hsv.at<Vec3b>(y, x)[0];
+        s = hsv.at<Vec3b>(y, x)[1];
     }
 }
 
