@@ -1,23 +1,27 @@
 #include <iostream>
 #include "EdgeDetection.h"
 
+using namespace cv;
+
+extern Mat frame;
+
 /*
-void EdgeDetection::cornersDetection(cv::Mat img, int thresh){
-    cv::Mat imgGrey;
-    cv::Mat imgHLS;
+void EdgeDetection::cornersDetection(Mat img, int thresh){
+    Mat imgGrey;
+    Mat imgHLS;
     int nbCorner = 0;
     ///conversion de l'image en niveaux de gris
-    cv::cvtColor( img, imgGrey, CV_BGR2GRAY );
+    cvtColor( img, imgGrey, CV_BGR2GRAY );
     ///conversion de RGB à HLS
-    cv::cvtColor( img, imgHLS, CV_BGR2HLS );
+    cvtColor( img, imgHLS, CV_BGR2HLS );
 
     ///On split les canaux
-    std::vector<cv::Mat> canaux;
-    cv::split(imgHLS,canaux);
+    std::vector<Mat> canaux;
+    split(imgHLS,canaux);
 
 
-    cv::Mat dst, dst_norm, dst_norm_scaled;
-    dst = cv::Mat::zeros( img.size(), CV_32FC1 );  //init
+    Mat dst, dst_norm, dst_norm_scaled;
+    dst = Mat::zeros( img.size(), CV_32FC1 );  //init
 
     /// Detector parameters
     int blockSize = 2;
@@ -25,21 +29,21 @@ void EdgeDetection::cornersDetection(cv::Mat img, int thresh){
     double k = 0.04;
 
     /// Detecting corners
-    cornerHarris( imgGrey, dst, blockSize, apertureSize, k, cv::BORDER_DEFAULT );
+    cornerHarris( imgGrey, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
 
     /// Normalizing
-    normalize( dst, dst_norm, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat() );
+    normalize( dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat() );
     convertScaleAbs( dst_norm, dst_norm_scaled );
 
     for( int j = 0; j < dst_norm.rows ; j++ ){
         for( int i = 0; i < dst_norm.cols; i++ ){
             if( (int) dst_norm.at<float>(j,i) > thresh ){
 
-                coord[nbCorner] = cv::Point(i, j);
+                coord[nbCorner] = Point(i, j);
                 nbCorner++;
 
                 if((int)canaux[1].at<uchar>(j,i) <= 185 && (int)canaux[1].at<uchar>(j,i) >= 165) {
-                    circle(img, cv::Point(i, j), 5, cv::Scalar(0), 2, 8, 0);
+                    circle(img, Point(i, j), 5, Scalar(0), 2, 8, 0);
                     //std::cout << (int)canaux[0].at<uchar>(j,i) << std::endl;
                 }
 
@@ -49,13 +53,13 @@ void EdgeDetection::cornersDetection(cv::Mat img, int thresh){
 }
 
 */
-void EdgeDetection::linesDetection(cv::Mat img, int thresh){
+void EdgeDetection::linesDetection(Mat img, int thresh){
     /// détection des contours avec canny
-    cv::Mat img2;
-    cv::Canny(img, img2, 50, thresh, 3);
+    Mat img2;
+    Canny(img, img2, 50, thresh, 3);
 
     /// detection des lignes dans le vect lines
-  /* std::vector<cv::Vec2f> lines;
+  /* std::vector<Vec2f> lines;
     HoughLines( img2, lines, 1, CV_PI/180, 100 );
 
     for( size_t i = 0; i < lines.size(); i++ )
@@ -64,13 +68,13 @@ void EdgeDetection::linesDetection(cv::Mat img, int thresh){
         float theta = lines[i][1];
         double a = cos(theta), b = sin(theta);
         double x0 = a*rho, y0 = b*rho;
-        cv::Point pt1(cvRound(x0 + 1000*(-b)),
+        Point pt1(cvRound(x0 + 1000*(-b)),
                   cvRound(y0 + 1000*(a)));
-        cv::Point pt2(cvRound(x0 - 1000*(-b)),
+        Point pt2(cvRound(x0 - 1000*(-b)),
                   cvRound(y0 - 1000*(a)));
-        line( img, pt1, pt2, cv::Scalar(0,0,255), 3, 8 );
+        line( img, pt1, pt2, Scalar(0,0,255), 3, 8 );
     }*/
-    std::vector<cv::Vec4i> lines;
+    std::vector<Vec4i> lines;
     /// houghLinesP(imgsource,
     /// vectdest,
     /// distance resolution en pixels
@@ -81,30 +85,55 @@ void EdgeDetection::linesDetection(cv::Mat img, int thresh){
     HoughLinesP(img2, lines, 1, CV_PI/180, 100, 50, 25 );
     for( size_t i = 0; i < lines.size(); i++ )
     {
-        cv::Vec4i l = lines[i];
-        cv::line( img, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,0,255), 1, CV_AA);
+        Vec4i l = lines[i];
+        line( img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0,0,255), 1, CV_AA);
     }
 }
 
 
 
-void EdgeDetection::colorDetection(cv::Mat img) {
+void EdgeDetection::colorDetection(Mat img) {
     ///Conversion en hsv
-    cv::Mat hsv;
-    cv::cvtColor(img, hsv, CV_BGR2HSV);
+    cvtColor(img, this->hsv, CV_BGR2HSV);
 
     ///Création d'un masque
-    cv::Mat mask;
+    Mat mask;
 
-    ///Si le pixel de l'image original à un h et un s proche de celui recharché on colorie l'image "mask" en blanc, autrement en noir
-    int h = 346;
-    int s = 83;
-    int toleranceh = 4;
-    int tolerances = 17;
-    cv::inRange(hsv, cv::Scalar(h-toleranceh-1, s-tolerances, 0), cv::Scalar(h+toleranceh -1, s+tolerances, 255), mask);
+    ///4 variables pour détecter les seuils de h et s
+    int h = 175;
+    int s = 80;
+    int toleranceh = 15;
+    int tolerances = 40;
+
+    ///inRange permet de parcourir toute l'image hsv
+    ///avec les deux scalars on définit l'intervalle de détection de couleur
+    ///le résultat est conservé dans une image binaire appelée mask
+    inRange(this->hsv, Scalar(h-toleranceh, 0, 0), Scalar(h+toleranceh, 255, 255), mask);
+
+    ///Permet de suprimer les parasites
+    Mat kernel;
+    kernel = getStructuringElement(2, Size(5,5), Point(2,2));
+
+    dilate(mask, mask, kernel);
+    erode(mask, mask, kernel);
+
+    ///
+    setMouseCallback("Frame", getObjectColor);
 
 
-    cv::namedWindow("1",cv::WINDOW_AUTOSIZE);
-    cv::imshow("1", mask);
+    ///affiche l'image en noir et blanc
+    namedWindow("1",WINDOW_AUTOSIZE);
+    imshow("1", mask);
 
 }
+
+void EdgeDetection::getObjectColor(int event, int x, int y, int flags, void *param){
+    Mat hsv;
+    ///Conversion en hsv
+    cvtColor(frame, hsv, CV_BGR2HSV);
+    if(event == CV_EVENT_LBUTTONUP) {
+        std::cout << hsv.at<Vec3b>(y, x) << std::endl;
+    }
+}
+
+
