@@ -8,6 +8,10 @@
 
 class EdgeDetection {
 
+private:
+    cv::Mat hsv;
+    static void getObjectColor(int event, int x, int y, int flags, void *param = NULL);
+
 public:
     /* détecte les angles dans une image et les affiche
      * @params
@@ -15,7 +19,12 @@ public:
      *      thresh : seuil de détection
      * */
     //static void cornersDetection(cv::Mat img, int thresh/*, cv::Point coord[]*/);
-    static void colorDetection(cv::Mat img);
+
+    /* détecte les couleurs d'une image
+     * @params
+     *      img : l'image où il faut détecter les couleurs
+     */
+    void colorDetection(cv::Mat img);
 
     /* détecte les lignes dans une image et renvoie les coordonnées des extrémités
      * @params
@@ -26,6 +35,7 @@ public:
      *      renvoie un vecteur de lignes
      *      les lignes sont de la forme Point(x1,y1) Point(x2,y2) qui sont les coordonnées des extrémités d'une ligne
      * */
+
     static std::vector<std::vector<cv::Point2f>> linesDetection(cv::Mat img, int thresh);
 
 };

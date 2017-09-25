@@ -1,8 +1,12 @@
 #include <iostream>
 #include "EdgeDetection.h"
 
+
 using namespace std;
 using namespace cv;
+
+extern Mat frame;
+
 /*
 void EdgeDetection::cornersDetection(Mat img, int thresh){
     Mat imgGrey;
@@ -14,7 +18,11 @@ void EdgeDetection::cornersDetection(Mat img, int thresh){
     cvtColor( img, imgHLS, CV_BGR2HLS );
 
     ///On split les canaux
+
     vector<Mat> canaux;
+
+    std::vector<Mat> canaux;
+
     split(imgHLS,canaux);
 
 
@@ -42,15 +50,18 @@ void EdgeDetection::cornersDetection(Mat img, int thresh){
 
                 if((int)canaux[1].at<uchar>(j,i) <= 185 && (int)canaux[1].at<uchar>(j,i) >= 165) {
                     circle(img, Point(i, j), 5, Scalar(0), 2, 8, 0);
-                    //cout << (int)canaux[0].at<uchar>(j,i) << endl;
-                }
 
+                    //cout << (int)canaux[0].at<uchar>(j,i) << endl;
+
+                    //std::cout << (int)canaux[0].at<uchar>(j,i) << std::endl;
+                }
             }
         }
     }
 }
 
 */
+
 vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
     /// détection des contours avec Canny
     Mat imgCanny;
@@ -64,7 +75,6 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
     /// vecteur dans lequel sont stockées les lignes
     ///     lignes stockées sous la forme (x1,y1,x2,y2)
     vector<Vec4i> lines;
-
     /// houghLinesP(imgsource,
     /// vectdest,
     /// distance resolution en pixels
@@ -72,6 +82,7 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
     /// seuil
     /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
+
     HoughLinesP(imgCanny, lines, 1, CV_PI/180, 100, 20, 25);
 
     /// tableau de couples de points
@@ -113,8 +124,31 @@ void EdgeDetection::colorDetection(Mat img) {
     int tolerances = 17;
     inRange(hsv, Scalar(h-toleranceh-1, s-tolerances, 0), Scalar(h+toleranceh -1, s+tolerances, 255), mask);
 
+    cvtColor(img, this->hsv, CV_BGR2HSV);
 
+    ///Permet de suprimer les parasites
+    Mat kernel;
+    kernel = getStructuringElement(2, Size(5,5), Point(2,2));
+
+    dilate(mask, mask, kernel);
+    erode(mask, mask, kernel);
+
+    ///
+    setMouseCallback("Frame", getObjectColor);
+
+    ///affiche l'image en noir et blanc
     namedWindow("1",WINDOW_AUTOSIZE);
     imshow("1", mask);
 
 }
+
+void EdgeDetection::getObjectColor(int event, int x, int y, int flags, void *param){
+    Mat hsv;
+    ///Conversion en hsv
+    cvtColor(frame, hsv, CV_BGR2HSV);
+    if(event == CV_EVENT_LBUTTONUP) {
+        std::cout << hsv.at<Vec3b>(y, x) << std::endl;
+    }
+}
+
+
