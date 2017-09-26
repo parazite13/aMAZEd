@@ -5,64 +5,11 @@
 using namespace std;
 using namespace cv;
 
-///Récupération de l'image d'origine
-extern Mat frame;
-///Déclaration de la teinte (h) et de la saturation (s) pour le format hsv
-int h, s;
-/*
-void EdgeDetection::cornersDetection(Mat img, int thresh){
-    Mat imgGrey;
-    Mat imgHLS;
-    int nbCorner = 0;
-    ///conversion de l'image en niveaux de gris
-    cvtColor( img, imgGrey, CV_BGR2GRAY );
-    ///conversion de RGB à HLS
-    cvtColor( img, imgHLS, CV_BGR2HLS );
 
-    ///On split les canaux
-
-    vector<Mat> canaux;
-
-    std::vector<Mat> canaux;
-
-    split(imgHLS,canaux);
+///tableau contenant les couleurs des coins
+extern int colorCorner[2][4];
 
 
-    Mat dst, dst_norm, dst_norm_scaled;
-    dst = Mat::zeros( img.size(), CV_32FC1 );  //init
-
-    /// Detector parameters
-    int blockSize = 2;
-    int apertureSize = 3;
-    double k = 0.04;
-
-    /// Detecting corners
-    cornerHarris( imgGrey, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
-
-    /// Normalizing
-    normalize( dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat() );
-    convertScaleAbs( dst_norm, dst_norm_scaled );
-
-    for( int j = 0; j < dst_norm.rows ; j++ ){
-        for( int i = 0; i < dst_norm.cols; i++ ){
-            if( (int) dst_norm.at<float>(j,i) > thresh ){
-
-                coord[nbCorner] = Point(i, j);
-                nbCorner++;
-
-                if((int)canaux[1].at<uchar>(j,i) <= 185 && (int)canaux[1].at<uchar>(j,i) >= 165) {
-                    circle(img, Point(i, j), 5, Scalar(0), 2, 8, 0);
-
-                    //cout << (int)canaux[0].at<uchar>(j,i) << endl;
-
-                    //std::cout << (int)canaux[0].at<uchar>(j,i) << std::endl;
-                }
-            }
-        }
-    }
-}
-
-*/
 
 vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
     /// détection des contours avec Canny
@@ -111,44 +58,58 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
 
 
 
-void EdgeDetection::colorDetection(Mat img) {
-    ///Conversion en hsv
-    cvtColor(img, this->hsv, CV_BGR2HSV);
+vector<Point2d> EdgeDetection::getCorner(Mat img) {
 
-    ///Création d'un masque
-    Mat mask;
-
+    ///vector qui contient les coordonnées des coins
+    vector<Point2d> coordCorner;
+    ///déclaration et calcul de l'image hsv
+    Mat hsv;
+    cvtColor(img, hsv, CV_BGR2HSV);
 
     ///réglage des seuils de tolérance
-    int toleranceh = 10;
+    int toleranceh = 5;
     int tolerances = 30;
-    ///affichage de l'image suivant les seuils de tolérance
-    inRange(hsv, Scalar(h-toleranceh-1, s-tolerances, 0), Scalar(h+toleranceh -1, s+tolerances, 255), mask);
 
-    ///Permet de suprimer les parasites
-    Mat kernel;
-    kernel = getStructuringElement(2, Size(5,5), Point(2,2));
+    Mat mask;
+    for(int i = 0; i < 4; i++) {
+        ///affichage de l'image suivant les seuils de tolérance
+        inRange(hsv, Scalar(colorCorner[0][i] - toleranceh, colorCorner[1][i] - tolerances, 0), Scalar(colorCorner[0][i] + toleranceh, colorCorner[1][i] + tolerances, 255), mask);
 
-    dilate(mask, mask, kernel);
-    erode(mask, mask, kernel);
+        Mat kernel;
+        kernel = getStructuringElement(2, Size(5,5), Point(2,2));
+        erode(mask, mask, kernel);
+        dilate(mask, mask, kernel);
 
-    ///Action bouton souri
-    setMouseCallback("Frame", getObjectColor);
+        coordCorner.push_back(EdgeDetection::getBarycentre(mask));
+        circle(img, EdgeDetection::getBarycentre(mask), 5, Scalar(0), 2, 8 ,0);
+        namedWindow("1",WINDOW_AUTOSIZE);
+        imshow("1", mask);
+    }
 
-    ///affiche l'image en noir et blanc
-    namedWindow("1",WINDOW_AUTOSIZE);
-    imshow("1", mask);
+   return coordCorner;
 
 }
 
-void EdgeDetection::getObjectColor(int event, int x, int y, int flags, void *param){
-    Mat hsv;
-    ///Conversion en hsv
-    cvtColor(frame, hsv, CV_BGR2HSV);
-    if(event == CV_EVENT_LBUTTONUP) {
-        h = hsv.at<Vec3b>(y, x)[0];
-        s = hsv.at<Vec3b>(y, x)[1];
+Point2d EdgeDetection::getBarycentre(Mat img) {
+
+    int nbWhitePixels = 0;
+    int xValue = 0;
+    int yValue = 0;
+
+    for(int i = 0; i < img.rows; i++){
+        for(int j = 0; j < img.cols; j++){
+            if((int)img.at<uchar>(i, j) == 255){
+                nbWhitePixels++;
+                xValue += j;
+                yValue += i;
+            }
+        }
     }
+    if(nbWhitePixels != 0) {
+        xValue = xValue / nbWhitePixels;
+        yValue = yValue / nbWhitePixels;
+    }
+    return Point2d(xValue, yValue);
 }
 
 
