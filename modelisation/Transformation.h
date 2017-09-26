@@ -5,9 +5,27 @@
 
 class Transformation {
 
-public:
-    static void getHomographyMatrix(float matrix[], const cv::Point2f inputQuad[], const cv::Size size);
+private:
 
+    cv::Size size;
+    float near;
+    float far;
+
+    cv::Mat intrinsic;
+    cv::Mat extrinsic;
+    cv::Mat homography;
+
+    void computeHomographyMatrix(std::vector<cv::Point2d> &edgeCoordinate);
+    void computeIntrinsicMatrix();
+    void computeExtrinsicMatrix();
+
+public:
+
+    Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, float near, float far);
+
+    void getModelviewMatrix(float matrix[]);
+    void getProjectionMatrix(float matrix[]);
+    cv::Mat getHomography();
 
 };
 
