@@ -61,62 +61,53 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
 
 vector<Point2d> EdgeDetection::getCorner(Mat img) {
 
-    ///vector qui contient les coordonnées des coins
-    vector<Point2d> coordCorner;
     ///déclaration et calcul de l'image hsv
     Mat hsv;
     cvtColor(img, hsv, CV_BGR2HSV);
 
     ///réglage des seuils de tolérance
-    int toleranceh = 30;
-    int tolerances = 40;
+    int toleranceh = 40;
+    int tolerances = 60;
 
     Mat mask;
-    for(int i = 0; i < 1; i++) {
-        ///affichage de l'image suivant les seuils de tolérance
-        inRange(hsv, Scalar(colorCorner[0][i] - toleranceh, colorCorner[1][i] - tolerances, 0), Scalar(colorCorner[0][i] + toleranceh, colorCorner[1][i] + tolerances, 255), mask);
-        Mat kernel;
-        kernel = getStructuringElement(2, Size(5,5), Point(2,2));
-        erode(mask, mask, kernel);
-        dilate(mask, mask, kernel);
-        mask = ~mask;
-    // Set up the detector with default parameters.
+    ///affichage de l'image suivant les seuils de tolérance
+    inRange(hsv, Scalar(colorCorner[0][0] - toleranceh, colorCorner[1][0] - tolerances, 0), Scalar(colorCorner[0][0] + toleranceh, colorCorner[1][0] + tolerances, 255), mask);
+    Mat kernel;
+    kernel = getStructuringElement(2, Size(5,5), Point(2,2));
+    erode(mask, mask, kernel);
+    dilate(mask, mask, kernel);
+    mask = ~mask;
 
 
-        // Setup SimpleBlobDetector parameters.
-        SimpleBlobDetector::Params params;
+    ///paramètre pour la détection des composantes connexes
+    SimpleBlobDetector::Params params;
 
-// Change thresholds
-        params.minThreshold = 0;
-        params.maxThreshold = 100;
-        params.filterByArea = true;
-        params.minArea = 300;
+    params.minThreshold = 0;
+    params.maxThreshold = 100;
+    params.filterByArea = true;
+    params.minArea = 200;
+    params.filterByCircularity = false;
+    params.filterByConvexity = false;
+    params.filterByInertia = false;
 
-        params.filterByCircularity = false;
-        params.filterByConvexity = false;
-        params.filterByInertia = false;
+    cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
+    std::vector<KeyPoint> keypoints;
+    detector->detect( mask, keypoints );
 
-        cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
-        std::vector<KeyPoint> keypoints;
-        detector->detect( mask, keypoints );
-
-// Draw detected blobs as red circles.
-// DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures the size of the circle corresponds to the size of blob
+    ///dessine les cercles correspondant aux composantes connexes
     drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 
-// Show blobs
+    namedWindow("1",WINDOW_AUTOSIZE);
+    imshow("1", mask);
 
-//        Mat kernel;
-//        kernel = getStructuringElement(2, Size(5,5), Point(2,2));
-//        erode(mask, mask, kernel);
-//        dilate(mask, mask, kernel);
-//
-//        coordCorner.push_back(EdgeDetection::getBarycentre(mask));
-//        circle(img, EdgeDetection::getBarycentre(mask), 5, Scalar(0), 2, 8 ,0);
-       namedWindow("1",WINDOW_AUTOSIZE);
-       imshow("1", mask);
+    ///vector qui contient les coordonnées des coins
+    vector<Point2d> coordCorner;
+    if(keypoints.size() == 4){
+        for(int i=0 ; i<4 ; i++ ){
+            coordCorner.push_back(keypoints[i].pt);
+        }
+        cout << coordCorner << endl ;
     }
-
    return coordCorner;
 
 }
