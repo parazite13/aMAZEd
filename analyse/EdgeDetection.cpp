@@ -14,9 +14,6 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
     Mat imgCanny;
     Canny(img, imgCanny, 100, 200, 3);
 
-    namedWindow("Canny",WINDOW_AUTOSIZE);
-    imshow("Canny", imgCanny);
-
     /// detection des lignes dans le vect lines
 
     /// vecteur dans lequel sont stockées les lignes
@@ -48,7 +45,7 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
         vectLines.push_back(vectPoints) ;
 
         ///tracé de la ligne
-        line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
+        //line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
     }
 
     return(vectLines);
