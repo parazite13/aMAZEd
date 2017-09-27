@@ -7,9 +7,6 @@ using namespace std;
 using namespace cv;
 
 
-///tableau contenant les couleurs des coins
-extern int colorCorner[2][4];
-
 
 
 vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
@@ -66,12 +63,14 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     cvtColor(img, hsv, CV_BGR2HSV);
 
     ///réglage des seuils de tolérance
+    int h = 160;
+    int s = 140;
     int toleranceh = 40;
     int tolerances = 60;
 
     Mat mask;
     ///affichage de l'image suivant les seuils de tolérance
-    inRange(hsv, Scalar(colorCorner[0][0] - toleranceh, colorCorner[1][0] - tolerances, 0), Scalar(colorCorner[0][0] + toleranceh, colorCorner[1][0] + tolerances, 255), mask);
+    inRange(hsv, Scalar(h-toleranceh, s-tolerances, 0), Scalar(h+toleranceh, s+tolerances, 255), mask);
     Mat kernel;
     kernel = getStructuringElement(2, Size(5,5), Point(2,2));
     erode(mask, mask, kernel);
@@ -85,7 +84,8 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     params.minThreshold = 0;
     params.maxThreshold = 100;
     params.filterByArea = true;
-    params.minArea = 200;
+    params.minArea = 500;
+    params.maxArea = 10000;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
     params.filterByInertia = false;
@@ -106,7 +106,6 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
         for(int i=0 ; i<4 ; i++ ){
             coordCorner.push_back(keypoints[i].pt);
         }
-        cout << coordCorner << endl ;
     }
    return coordCorner;
 
