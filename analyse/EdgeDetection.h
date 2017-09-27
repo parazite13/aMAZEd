@@ -9,12 +9,18 @@
 class EdgeDetection {
 
 private:
+
+
     /**
-     * Renvoie la barycentre
-     * @param img
-     * @return
+     * Trie le vector de points selon l'odre désiré par la team modelisation
+     * @param coord vecteur de 4 Points !!! doit être obligatoirement de 4 !!! sinon CRASH
+     * @return vecteur avec les 4 points ordonnés:
+     *         0 : bas gauche
+     *         1 : haut gauche
+     *         2 : haut droite
+     *         3 : bas droite
      */
-    static cv::Point2d getBarycentre(cv::Mat img);
+    static std::vector<cv::Point2d> sortPoints(std::vector<cv::Point2d> coord);
 
 public:
 

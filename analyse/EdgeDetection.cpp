@@ -65,8 +65,8 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     ///réglage des seuils de tolérance
     int h = 160;
     int s = 140;
-    int toleranceh = 40;
-    int tolerances = 60;
+    int toleranceh = 30;
+    int tolerances = 40;
 
     Mat mask;
     ///affichage de l'image suivant les seuils de tolérance
@@ -76,7 +76,6 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     erode(mask, mask, kernel);
     dilate(mask, mask, kernel);
     mask = ~mask;
-
 
     ///paramètre pour la détection des composantes connexes
     SimpleBlobDetector::Params params;
@@ -102,35 +101,36 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
 
     ///vector qui contient les coordonnées des coins
     vector<Point2d> coordCorner;
+
     if(keypoints.size() == 4){
         for(int i=0 ; i<4 ; i++ ){
             coordCorner.push_back(keypoints[i].pt);
         }
+        /// ordre des points en fonction des exigences de la modélisation
+        coordCorner = sortPoints(coordCorner);
     }
    return coordCorner;
 
 }
 
-Point2d EdgeDetection::getBarycentre(Mat img) {
 
-    int nbWhitePixels = 0;
-    int xValue = 0;
-    int yValue = 0;
-
-    for(int i = 0; i < img.rows; i++){
-        for(int j = 0; j < img.cols; j++){
-            if((int)img.at<uchar>(i, j) == 255){
-                nbWhitePixels++;
-                xValue += j;
-                yValue += i;
-            }
-        }
-    }
-    if(nbWhitePixels != 0) {
-        xValue = xValue / nbWhitePixels;
-        yValue = yValue / nbWhitePixels;
-    }
-    return Point2d(xValue, yValue);
+/// fonction utilisée pour trier les points
+bool sortByY(Point p1, Point p2){
+    return p1.y>p2.y ;
 }
+
+vector<Point2d> EdgeDetection::sortPoints(vector<Point2d> coord){
+    /// tri du y le plus grand au plus petit
+    sort(coord.begin(), coord.end(), sortByY);
+    /// comparaison des deux du bas et des deux du haut
+    if(coord[0].x > coord[1].x) swap(coord[0],coord[1]);
+    if(coord[2].x > coord[3].x) swap(coord[2],coord[3]);
+    ///réarangement qui marche =)
+    swap(coord[1],coord[2]);
+    swap(coord[2],coord[3]);
+
+    return coord;
+}
+
 
 
