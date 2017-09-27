@@ -1,6 +1,7 @@
 #include <iostream>
 #include "EdgeDetection.h"
-
+#include "opencv2/opencv.hpp"
+#include <opencv2/features2d/features2d.hpp>
 
 using namespace std;
 using namespace cv;
@@ -67,23 +68,53 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     cvtColor(img, hsv, CV_BGR2HSV);
 
     ///réglage des seuils de tolérance
-    int toleranceh = 5;
-    int tolerances = 30;
+    int toleranceh = 30;
+    int tolerances = 40;
 
     Mat mask;
-    for(int i = 0; i < 4; i++) {
+    for(int i = 0; i < 1; i++) {
         ///affichage de l'image suivant les seuils de tolérance
         inRange(hsv, Scalar(colorCorner[0][i] - toleranceh, colorCorner[1][i] - tolerances, 0), Scalar(colorCorner[0][i] + toleranceh, colorCorner[1][i] + tolerances, 255), mask);
-
         Mat kernel;
         kernel = getStructuringElement(2, Size(5,5), Point(2,2));
         erode(mask, mask, kernel);
         dilate(mask, mask, kernel);
+        mask = ~mask;
+    // Set up the detector with default parameters.
 
-        coordCorner.push_back(EdgeDetection::getBarycentre(mask));
-        circle(img, EdgeDetection::getBarycentre(mask), 5, Scalar(0), 2, 8 ,0);
-        namedWindow("1",WINDOW_AUTOSIZE);
-        imshow("1", mask);
+
+        // Setup SimpleBlobDetector parameters.
+        SimpleBlobDetector::Params params;
+
+// Change thresholds
+        params.minThreshold = 0;
+        params.maxThreshold = 100;
+        params.filterByArea = true;
+        params.minArea = 300;
+
+        params.filterByCircularity = false;
+        params.filterByConvexity = false;
+        params.filterByInertia = false;
+
+        cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
+        std::vector<KeyPoint> keypoints;
+        detector->detect( mask, keypoints );
+
+// Draw detected blobs as red circles.
+// DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures the size of the circle corresponds to the size of blob
+    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+
+// Show blobs
+
+//        Mat kernel;
+//        kernel = getStructuringElement(2, Size(5,5), Point(2,2));
+//        erode(mask, mask, kernel);
+//        dilate(mask, mask, kernel);
+//
+//        coordCorner.push_back(EdgeDetection::getBarycentre(mask));
+//        circle(img, EdgeDetection::getBarycentre(mask), 5, Scalar(0), 2, 8 ,0);
+       namedWindow("1",WINDOW_AUTOSIZE);
+       imshow("1", mask);
     }
 
    return coordCorner;
