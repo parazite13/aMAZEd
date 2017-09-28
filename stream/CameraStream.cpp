@@ -37,9 +37,9 @@ Mat CameraStream::getCurrentFrame() {
 }
 
 void CameraStream::getDesktopResolution(int& width, int& height){
-    RECT desktop;
+    RECT desktop{};
     // Get a handle to the desktop window
-    const HWND hDesktop = GetDesktopWindow();
+    HWND hDesktop = GetDesktopWindow();
     // Get the size of screen to the variable desktop
     GetWindowRect(hDesktop, &desktop);
     // The top left corner will have coordinates (0,0)

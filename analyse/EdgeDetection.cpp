@@ -1,12 +1,9 @@
 #include <iostream>
 #include "EdgeDetection.h"
 #include "opencv2/opencv.hpp"
-#include <opencv2/features2d/features2d.hpp>
 
 using namespace std;
 using namespace cv;
-
-
 
 
 vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> coordCorner){
@@ -48,14 +45,12 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
         fillPoly(mask, ppt, npt, 1, Scalar(255, 255, 255), 8);
     }
 
-    for( size_t i = 0; i < lines.size(); i++ ){
-        /// récupération d'une ligne
-        Vec4i l = lines[i];
+    for(Vec4i l : lines){
 
         /// couple de points
         vector<Point2f> vectPoints ;
-        vectPoints.push_back(Point2f(l[0], l[1]));
-        vectPoints.push_back(Point2f(l[2], l[3]));
+        vectPoints.emplace_back(l[0], l[1]);
+        vectPoints.emplace_back(l[2], l[3]);
 
         /// ajout du couple au tableau
         vectLines.push_back(vectPoints) ;
