@@ -9,7 +9,7 @@ using namespace cv;
 
 
 
-vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
+vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> coordCorner){
     /// détection des contours avec Canny
     Mat imgCanny;
     Canny(img, imgCanny, 100, 200, 3);
@@ -32,6 +32,22 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
     /// tableau de couples de points
     vector<vector<Point2f>> vectLines;
 
+    ///Initialisation du mask
+    Mat mask = Mat::zeros(img.size(), CV_8UC1);
+
+    ///
+    if(coordCorner.size() == 4) {
+        Point rook_points[1][20];
+        rook_points[0][0] = coordCorner[0];
+        rook_points[0][1] = coordCorner[1];
+        rook_points[0][2] = coordCorner[2];
+        rook_points[0][3] = coordCorner[3];
+        int npt[] = {4};
+
+        const Point *ppt[1] = {rook_points[0]};
+        fillPoly(mask, ppt, npt, 1, Scalar(255, 255, 255), 8);
+    }
+
     for( size_t i = 0; i < lines.size(); i++ ){
         /// récupération d'une ligne
         Vec4i l = lines[i];
@@ -47,6 +63,9 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, int thresh){
         ///tracé de la ligne
         //line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
     }
+
+    /*namedWindow("2",WINDOW_AUTOSIZE);
+    imshow("2", mask);*/
 
     return(vectLines);
 }

@@ -16,8 +16,8 @@ void loop(int){
 
     vector<Point2d> coordCorner;
     Mat currentFrame = cameraStream.getCurrentFrame();
-    EdgeDetection::linesDetection(currentFrame, 220);
     coordCorner = EdgeDetection::getCorner(currentFrame);
+    EdgeDetection::linesDetection(currentFrame, coordCorner);
 
     if(coordCorner.size() == 4){
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows));
