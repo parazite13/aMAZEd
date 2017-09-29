@@ -24,7 +24,7 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
     /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
 
-    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 100, 20, 25);
+    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 50, 5, 10);
 
     /// tableau de couples de points
     vector<vector<Point2f>> vectLines;
@@ -32,18 +32,24 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
     ///Initialisation du mask
     Mat mask = Mat::zeros(img.size(), CV_8UC1);
 
-    ///
+    ///Si on a 4 points alors
+    ///On déssine un polygone avec ces 4 points dans le mask
     if(coordCorner.size() == 4) {
-        Point rook_points[1][20];
-        rook_points[0][0] = coordCorner[0];
-        rook_points[0][1] = coordCorner[1];
-        rook_points[0][2] = coordCorner[2];
-        rook_points[0][3] = coordCorner[3];
+        ///Conversion des données pour utiliser la fonction fillPoly
+        Point coord[1][4];
+        coord[0][0] = coordCorner[0];
+        coord[0][1] = coordCorner[1];
+        coord[0][2] = coordCorner[2];
+        coord[0][3] = coordCorner[3];
+        ///Nombre de points
         int npt[] = {4};
+        ///Pointeur de points
+        const Point *ppt[1] = {coord[0]};
 
-        const Point *ppt[1] = {rook_points[0]};
         fillPoly(mask, ppt, npt, 1, Scalar(255, 255, 255), 8);
     }
+
+
 
     for(Vec4i l : lines){
 
@@ -56,11 +62,13 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
         vectLines.push_back(vectPoints) ;
 
         ///tracé de la ligne
-        //line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
+        if((int)mask.at<uchar>((int)vectPoints[0].y, (int)vectPoints[0].x) == 255 && (int)mask.at<uchar>((int)vectPoints[1].y, (int)vectPoints[1].x) == 255) {
+            line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
+        }
     }
 
-    /*namedWindow("2",WINDOW_AUTOSIZE);
-    imshow("2", mask);*/
+    namedWindow("2",WINDOW_AUTOSIZE);
+    imshow("2", img);
 
     return(vectLines);
 }
