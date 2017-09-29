@@ -81,11 +81,15 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     Mat hsv;
     cvtColor(img, hsv, CV_BGR2HSV);
 
+    circle(img, Point(300,300), 5, Scalar(0,0,255));
+    cout << (int)hsv.at<Vec3b>(300, 300)[0] << endl;
+    cout << (int)hsv.at<Vec3b>(300, 300)[1] << endl;
+
     ///réglage des seuils de tolérance
-    int h = 160;
-    int s = 140;
-    int toleranceh = 30;
-    int tolerances = 40;
+    int h = 80;
+    int s = 250;
+    int toleranceh = 10;
+    int tolerances = 10;
 
     Mat mask;
     ///affichage de l'image suivant les seuils de tolérance
