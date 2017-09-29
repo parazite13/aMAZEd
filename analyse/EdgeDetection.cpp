@@ -20,11 +20,11 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
     /// vectdest,
     /// distance resolution en pixels
     /// angle resolution en rad
-    /// seuil
+    /// seuil :The minimum number of intersections to “detect” a line
     /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
 
-    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 50, 5, 10);
+    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 10, 20, 5);
 
     /// tableau de couples de points
     vector<vector<Point2f>> vectLines;
