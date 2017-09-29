@@ -3,26 +3,37 @@
 #include "analyse/EdgeDetection.h"
 #include "modelisation/Transformation.h"
 #include <GL/freeglut.h>
-
 using namespace std;
 using namespace cv;
 
+//Textures
+Mat textCam;
+Mat textMaze;
+GLuint const ID_TEXT_CAM = 1;
+GLuint const ID_TEXT_MAZE = 2;
+
+//Constantes
+int const FPS = 30;
 CameraStream cameraStream = CameraStream();
+
 float h[16];
+float m[16];
+float p[16];
 
 void loop(int){
 
     vector<Point2d> coordCorner;
     Mat currentFrame = cameraStream.getCurrentFrame();
+    textCam = currentFrame;
     coordCorner = EdgeDetection::getCorner(currentFrame);
     EdgeDetection::linesDetection(currentFrame, coordCorner);
 
     if(coordCorner.size() == 4){
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows));
         transformation.getHomography(h);
+        //transformation.getProjectionMatrix(p);
+        //transformation.getModelviewMatrix(m);
     }
-
-    //imshow("Camera", currentFrame);
 
     glutPostRedisplay();
 
@@ -75,15 +86,48 @@ void drawAxes(){
 }
 
 void drawSquare(){
-
     glBegin(GL_POLYGON);
     glColor3f(1.0, 1.0, 1.0);
-    glTexCoord2d(0, 1); glVertex3f(0.0f, 0.0f, 0.0);
-    glTexCoord2d(0, 0); glVertex3f(0.0f, 1.0f, 0.0);
-    glTexCoord2d(1, 0); glVertex3f(1.0f, 1.0f, 0.0);
-    glTexCoord2d(1, 1); glVertex3f(1.0f, 0.0f, 0.0);
+    glTexCoord2d(0, 1);glVertex3f(0.0f, 0.0f, 0.0f);
+    glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, 0.0f);
+    glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, 0.0f);
+    glTexCoord2d(1, 1);glVertex3f(1.0f, 0.0f, 0.0f);
     glEnd();
+}
 
+void drawBackground(){
+    glBegin(GL_POLYGON);
+    glTexCoord2d(0, 1);glVertex3f(0.0f, 0.0f, -5.0f);
+    glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, -5.0f);
+    glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, -5.0f);
+    glTexCoord2d(1, 1);glVertex3f(1.0f, 0.0f, -5.0f);
+    glEnd();
+}
+
+void drawBall(){
+    glutSolidSphere(0.5f, 50, 50);
+}
+
+void loadTexture(GLuint id, Mat img) {
+    glBindTexture(GL_TEXTURE_2D, id);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    glTexImage2D(GL_TEXTURE_2D,     // Type of texture
+                 0,                 // Pyramid level (for mip-mapping) - 0 is the top level
+                 GL_RGB,            // Internal colour format to convert to
+                 img.cols,      // Image width  i.e. 640 for Kinect in standard mode
+                 img.rows,      // Image height i.e. 480 for Kinect in standard mode
+                 0,                 // Border width in pixels (can either be 1 or 0)
+                 0x80E0,            // Valeur correspondante à BGR
+                 GL_UNSIGNED_BYTE,  // Image data type
+                 img.data);     // The actual image data itself
+
+    glEnable(GL_TEXTURE_2D);
 }
 
 void display() {
@@ -93,37 +137,39 @@ void display() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, 1, 0, 1, -10, 10);
+
+    glPushMatrix();
     glMultMatrixf(h);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    drawAxes();
+    //drawAxes();
+    loadTexture(ID_TEXT_MAZE, textMaze);
     drawSquare();
+    glPopMatrix();
+
+    glPushMatrix();
+    loadTexture(ID_TEXT_CAM, textCam);
+    drawBackground();
+    glPopMatrix();
 
     glutSwapBuffers();
 
-    glutTimerFunc(30, loop, 0);
+    glutTimerFunc(1000 / FPS, loop, 0);
 }
 
 void resize(int width, int height){
 
     glViewport(0, 0, width, height);
-
 }
-
 
 int main(int argc, char** argv){
 
     int h = 0;
     int w = 0;
     CameraStream::getDesktopResolution(w, h);
-    //namedWindow("Camera", WINDOW_NORMAL);
-    //resizeWindow("Camera", 4*h/3, h);
+
+    textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
 
     glutInit(&argc, argv);
-
-    glutInitWindowSize(w, h);
+    glutInitWindowSize(4*h/3, h);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutCreateWindow("aMAZEd");
     glEnable(GL_DEPTH_TEST);
