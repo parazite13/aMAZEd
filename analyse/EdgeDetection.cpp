@@ -86,10 +86,11 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     cout << (int)hsv.at<Vec3b>(300, 300)[1] << endl;
 
     ///réglage des seuils de tolérance
-    int h = 80;
-    int s = 250;
-    int toleranceh = 10;
-    int tolerances = 10;
+    int h = 160;
+    int s = 140;
+
+    int toleranceh = 30;
+    int tolerances = 40;
 
     Mat mask;
     ///affichage de l'image suivant les seuils de tolérance
@@ -132,7 +133,21 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
         /// ordre des points en fonction des exigences de la modélisation
         coordCorner = sortPoints(coordCorner);
     }
-   return coordCorner;
+        /// si plus de 4 composantes connexes trouvées on prends les 4 plus grosses
+    else if(keypoints.size() > 4){
+        for(int i=0 ; i<4 ; i++ ){
+            int imax = 0;
+            for(int j = 1 ; j< keypoints.size() ; j++) {
+                if (keypoints[j].size > keypoints[imax].size) {
+                    imax = j;
+                }
+            }
+            coordCorner.push_back(keypoints[imax].pt);
+            keypoints[imax].size = 0;
+        }
+        coordCorner = sortPoints(coordCorner);
+    }
+    return coordCorner;
 
 }
 
