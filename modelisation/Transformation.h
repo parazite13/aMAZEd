@@ -7,19 +7,40 @@ class Transformation {
 
 private:
 
-    cv::Size size;  // size.width => w, size.height => h
-    cv::Mat H;  // Homography
+    const float FX = 550;
+    const float FY = 550;
+    float X0;
+    float Y0;
 
+    cv::Size size;  // size.width => w, size.height => h
+    float N;
+    float F;
+
+    cv::Mat K;  // Intrinsic
+    cv::Mat P;  // Extrinsic
+    cv::Mat H;  // Homography
+    cv::Mat NDC;  // NDC
+    cv::Mat Persp;  // Persp
+
+    cv::Mat proj;
+    cv::Mat modelView;
 
     void computeHomographyMatrix(std::vector<cv::Point2d> &edgeCoordinate);
-
+    void computeIntrinsicMatrix();
+    void computeExtrinsicMatrix();
+    void computeProjMatrix();
+    void computeModelviewMatrix();
+    void computeNDCMatrix();
+    void computePerspMatrix();
 
 public:
 
-    Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size);
+    Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, float near, float far);
 
-    const void getHomography(float* matrix) const;
+    void getModelviewMatrix(float matrix[]);
+    void getProjectionMatrix(float matrix[]);
 
+    void getHomography(float matrix[]);
 };
 
 
