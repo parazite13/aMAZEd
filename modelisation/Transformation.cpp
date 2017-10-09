@@ -8,181 +8,192 @@
 using namespace cv;
 using namespace std;
 
-Transformation::Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, float near, float far) {
+Transformation::Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, double near, double far) {
 
-    this->X0 = 320.0f;
-    this->Y0 = 240.0f;
+    this->X0 = size.width / 2;
+    this->Y0 = size.height / 2;
 
     this->size = size;
     this->N = near;
     this->F = far;
 
     computeHomographyMatrix(edgeCoordinate);
-
-    this->K = Mat(3, 3, CV_32FC1);
     computeIntrinsicMatrix();
-
-    this->modelView = Mat(4, 4, CV_32FC1);
-    computeModelviewMatrix();
-
-    this->proj = Mat(4, 4, CV_32FC1);
+    computeModelviewMatrix(edgeCoordinate);
     computeProjMatrix();
 
 }
 
-void Transformation::getHomography(float *matrix) {
+void Transformation::getHomography(double *matrix) {
 
-    matrix[0] = (float)this->H.at<double>(0, 0);
-    matrix[1] = (float)this->H.at<double>(1, 0);
+    matrix[0] = this->H.at<double>(0, 0);
+    matrix[1] = this->H.at<double>(1, 0);
     matrix[2] = 0.0f;
-    matrix[3] = (float)this->H.at<double>(2, 0);
+    matrix[3] = this->H.at<double>(2, 0);
 
-    matrix[4] = (float)this->H.at<double>(0, 1);
-    matrix[5] = (float)this->H.at<double>(1, 1);
+    matrix[4] = this->H.at<double>(0, 1);
+    matrix[5] = this->H.at<double>(1, 1);
     matrix[6] = 0.0f;
-    matrix[7] = (float)this->H.at<double>(2, 1);
+    matrix[7] = this->H.at<double>(2, 1);
 
     matrix[8] = 0.0f;
     matrix[9] = 0.0f;
     matrix[10] = 1.0f;
     matrix[11] = 0.0f;
 
-    matrix[12] = (float)this->H.at<double>(0, 2);
-    matrix[13] = (float)this->H.at<double>(1, 2);
+    matrix[12] = this->H.at<double>(0, 2);
+    matrix[13] = this->H.at<double>(1, 2);
     matrix[14] = 0.0f;
-    matrix[15] = (float)this->H.at<double>(2, 2);
+    matrix[15] = this->H.at<double>(2, 2);
 }
 
 
-void Transformation::getProjectionMatrix(float *matrix) {
+void Transformation::getProjectionMatrix(double *matrix) {
 
-    matrix[0] = this->proj.at<float>(0, 0);
-    matrix[1] = this->proj.at<float>(1, 0);
-    matrix[2] = this->proj.at<float>(2, 0);
-    matrix[3] = this->proj.at<float>(3, 0);
+    matrix[0] = this->proj.at<double>(0, 0);
+    matrix[1] = this->proj.at<double>(1, 0);
+    matrix[2] = this->proj.at<double>(2, 0);
+    matrix[3] = this->proj.at<double>(3, 0);
 
-    matrix[4] = this->proj.at<float>(0, 1);
-    matrix[5] = this->proj.at<float>(1, 1);
-    matrix[6] = this->proj.at<float>(2, 1);
-    matrix[7] = this->proj.at<float>(3, 1);
+    matrix[4] = this->proj.at<double>(0, 1);
+    matrix[5] = this->proj.at<double>(1, 1);
+    matrix[6] = this->proj.at<double>(2, 1);
+    matrix[7] = this->proj.at<double>(3, 1);
 
-    matrix[8] = this->proj.at<float>(0, 2);
-    matrix[9] = this->proj.at<float>(1, 2);
-    matrix[10] = this->proj.at<float>(2, 2);
-    matrix[11] = this->proj.at<float>(3, 2);
+    matrix[8] = this->proj.at<double>(0, 2);
+    matrix[9] = this->proj.at<double>(1, 2);
+    matrix[10] = this->proj.at<double>(2, 2);
+    matrix[11] = this->proj.at<double>(3, 2);
 
-    matrix[12] = this->proj.at<float>(0, 3);
-    matrix[13] = this->proj.at<float>(1, 3);
-    matrix[14] = this->proj.at<float>(2, 3);
-    matrix[15] = this->proj.at<float>(3, 3);
-
-}
-
-void Transformation::getModelviewMatrix(float *matrix) {
-
-    matrix[0] = this->modelView.at<float>(0, 0);
-    matrix[1] = this->modelView.at<float>(1, 0);
-    matrix[2] = this->modelView.at<float>(2, 0);
-    matrix[3] = this->modelView.at<float>(3, 0);
-
-    matrix[4] = this->modelView.at<float>(0, 1);
-    matrix[5] = this->modelView.at<float>(1, 1);
-    matrix[6] = this->modelView.at<float>(2, 1);
-    matrix[7] = this->modelView.at<float>(3, 1);
-
-    matrix[8] = this->modelView.at<float>(0, 2);
-    matrix[9] = this->modelView.at<float>(1, 2);
-    matrix[10] = this->modelView.at<float>(2, 2);
-    matrix[11] = this->modelView.at<float>(3, 2);
-
-    matrix[12] = this->modelView.at<float>(0, 3);
-    matrix[13] = this->modelView.at<float>(1, 3);
-    matrix[14] = this->modelView.at<float>(2, 3);
-    matrix[15] = this->modelView.at<float>(3, 3);
+    matrix[12] = this->proj.at<double>(0, 3);
+    matrix[13] = this->proj.at<double>(1, 3);
+    matrix[14] = this->proj.at<double>(2, 3);
+    matrix[15] = this->proj.at<double>(3, 3);
 
 }
 
-void Transformation::computeHomographyMatrix(std::vector<cv::Point2d> &edgeCoordinate) {
+void Transformation::getModelviewMatrix(double *matrix) {
 
-    // The 4 points that select quadilateral on the input , from top-left edge clockwise order
-    // These four pts are the sides of the rect box used as input
-    vector<Point2f> realWorldEdgeCoordinate = vector<Point2f>();
-    realWorldEdgeCoordinate.emplace_back(0.0f, 0.0f);
-    realWorldEdgeCoordinate.emplace_back(0.0f, 1.0f);
-    realWorldEdgeCoordinate.emplace_back(1.0f, 1.0f);
-    realWorldEdgeCoordinate.emplace_back(1.0f, 0.0f);
+    matrix[0] = this->modelView.at<double>(0, 0);
+    matrix[1] = this->modelView.at<double>(1, 0);
+    matrix[2] = this->modelView.at<double>(2, 0);
+    matrix[3] = this->modelView.at<double>(3, 0);
 
-    vector<Point2f> edgeFloat;
-    for (auto &edge : edgeCoordinate) {
-        edgeFloat.emplace_back(((float)edge.x / this->size.width), 1.0f - ((float)edge.y / this->size.height));
+    matrix[4] = this->modelView.at<double>(0, 1);
+    matrix[5] = this->modelView.at<double>(1, 1);
+    matrix[6] = this->modelView.at<double>(2, 1);
+    matrix[7] = this->modelView.at<double>(3, 1);
+
+    matrix[8] = this->modelView.at<double>(0, 2);
+    matrix[9] = this->modelView.at<double>(1, 2);
+    matrix[10] = this->modelView.at<double>(2, 2);
+    matrix[11] = this->modelView.at<double>(3, 2);
+
+    matrix[12] = this->modelView.at<double>(0, 3);
+    matrix[13] = this->modelView.at<double>(1, 3);
+    matrix[14] = this->modelView.at<double>(2, 3);
+    matrix[15] = this->modelView.at<double>(3, 3);
+
+}
+
+void Transformation::computeHomographyMatrix(const vector<Point2d> &edgeCoordinate) {
+
+    this->proj = Mat(4, 4, CV_64FC1);
+
+    vector<Point2f> imagePoints;
+    for(const auto &i : edgeCoordinate){
+        imagePoints.emplace_back(i.x, this->size.height - i.y);
     }
 
-    cout << edgeFloat << endl;
+    vector<Point2d> modelPoints;
+    modelPoints.emplace_back(0.0, 0.0);
+    modelPoints.emplace_back(0.0, 1.0);
+    modelPoints.emplace_back(1.0, 1.0);
+    modelPoints.emplace_back(1.0, 0.0);
 
-    this->H = findHomography(realWorldEdgeCoordinate, edgeFloat, RANSAC);
-
-    cout << "Homographie\n" << this->H << endl << endl;
+    this->H = findHomography(modelPoints, imagePoints, RANSAC);
 }
 
 void Transformation::computeIntrinsicMatrix() {
 
-    this->K.at<float>(0, 0) = this->FX;
-    this->K.at<float>(0, 1) = 0.0f;
-    this->K.at<float>(0, 2) = -this->X0;
+    this->K = Mat(3, 3, CV_64FC1);
 
-    this->K.at<float>(1, 0) = 0.0f;
-    this->K.at<float>(1, 1) = this->FY;
-    this->K.at<float>(1, 2) = -this->Y0;
+    this->K.at<double>(0, 0) = this->FX;
+    this->K.at<double>(0, 1) = 0.0f;
+    this->K.at<double>(0, 2) = this->X0;
 
-    this->K.at<float>(2, 0) = 0.0f;
-    this->K.at<float>(2, 1) = 0.0f;
-    this->K.at<float>(2, 2) = -1.0f;
+    this->K.at<double>(1, 0) = 0.0f;
+    this->K.at<double>(1, 1) = this->FY;
+    this->K.at<double>(1, 2) = this->Y0;
 
-    cout << "Intrinsic\n" << this->K << endl << endl;
+    this->K.at<double>(2, 0) = 0.0f;
+    this->K.at<double>(2, 1) = 0.0f;
+    this->K.at<double>(2, 2) = 1.0f;
 
 }
 
-void Transformation::computeExtrinsicMatrix() {
+void Transformation::computeExtrinsicMatrix(const vector<Point2d> &edgeCoordinate) {
 
-    this->P = Mat(3, 4, CV_32FC1);
+    vector<Point2f> imagePoints;
+    for(const auto &i : edgeCoordinate){
+        imagePoints.emplace_back(i.x, this->size.height - i.y); /// Inversion du repere selon l'axe Y
+    }
 
-    vector<Mat> rot;
-    vector<Mat> trans;
-    vector<Mat> norm;
-    decomposeHomographyMat(this->H, this->K, rot, trans, norm);
+    vector<Point3d> modelPoints;
+    modelPoints.emplace_back(0.0, 0.0, 0.0);
+    modelPoints.emplace_back(0.0, 1.0, 0.0);
+    modelPoints.emplace_back(1.0, 1.0, 0.0);
+    modelPoints.emplace_back(1.0, 0.0, 0.0);
 
-    int solution = 0;
+    Mat distCoeffs = Mat::zeros(4, 1, CV_64FC1); // Pas de distortion (très grossier -> pas de calibrage)
 
-    this->P.at<float>(0, 0) = (float)rot[solution].at<double>(0, 0);
-    this->P.at<float>(0, 1) = (float)rot[solution].at<double>(0, 1);
-    this->P.at<float>(0, 2) = (float)rot[solution].at<double>(0, 2);
-    this->P.at<float>(0, 3) = (float)trans[solution].at<double>(0, 0);
+    Mat rot;
+    Mat trans;
 
-    this->P.at<float>(1, 0) = (float)rot[solution].at<double>(1, 0);
-    this->P.at<float>(1, 1) = (float)rot[solution].at<double>(1, 1);
-    this->P.at<float>(1, 2) = (float)rot[solution].at<double>(1, 2);
-    this->P.at<float>(1, 3) = (float)trans[solution].at<double>(1, 0);
+    solvePnP(modelPoints, imagePoints, this->K, distCoeffs, rot, trans);
 
-    this->P.at<float>(2, 0) = (float)rot[solution].at<double>(2, 0);
-    this->P.at<float>(2, 1) = (float)rot[solution].at<double>(2, 1);
-    this->P.at<float>(2, 2) = (float)rot[solution].at<double>(2, 2);
-    this->P.at<float>(2, 3) = (float)trans[solution].at<double>(2, 0);
+    /// Affichae OpenCV fonctionne uniquement en enlevant la premiere boucle d'inversion du y
+    /*vector<Point3d> modelPoints3d;
+    vector<Point2d> projectedPoints;
+    for(auto p : modelPoints)
+        modelPoints3d.push_back(Point3d(p.x, p.y, 1.));
 
-    /// Si le déterminant de Rot vaut -1 on change le signe de la matrice
-//    if(fabs(determinant(rot[solution]) + 1) < 1e-3){
-//        rot[solution] *= -1;
-//    }
+    projectPoints(modelPoints3d, rot, trans, this->K, distCoeffs, projectedPoints);
 
-//    for(int i = 0; i < 4; i++){
-//    cout << i << endl;
-//        cout << "Trans" << trans[i] << endl;
-//        cout << "Rot" << rot[i] << endl;
-//        cout << "Norm" << norm[i] << endl;
-//    }
+    for(int i = 0; i < imagePoints.size(); i++) {
+        circle(currentFrame, imagePoints[i], 3, Scalar(0,0,255), -1);
+    }
 
-//    cout << "det R = " << determinant(rot[solution]) << endl;
+    int i = 0;
+    for(auto p:imagePoints)
+        cv::line(currentFrame,p, projectedPoints[i++], cv::Scalar(255,0,0), 2);
 
-    cout << "Extrinsic\n" << this->P << endl << endl;
+    cv::imshow("ReVA 2017", currentFrame);
+*/
+
+    Mat rotRodrigues;
+    Rodrigues(rot, rotRodrigues);
+
+    cout << "ROT" << endl << rotRodrigues << endl;
+    cout << "TRANS" << endl << trans << endl;
+
+
+    this->P = Mat(3, 4, CV_64FC1);
+
+    this->P.at<double>(0, 0) = rotRodrigues.at<double>(0, 0);
+    this->P.at<double>(0, 1) = rotRodrigues.at<double>(0, 1);
+    this->P.at<double>(0, 2) = rotRodrigues.at<double>(0, 2);
+    this->P.at<double>(0, 3) = trans.at<double>(0);
+
+    this->P.at<double>(1, 0) = rotRodrigues.at<double>(1, 0);
+    this->P.at<double>(1, 1) = rotRodrigues.at<double>(1, 1);
+    this->P.at<double>(1, 2) = rotRodrigues.at<double>(1, 2);
+    this->P.at<double>(1, 3) = trans.at<double>(1);
+
+    this->P.at<double>(2, 0) = rotRodrigues.at<double>(2, 0);
+    this->P.at<double>(2, 1) = rotRodrigues.at<double>(2, 1);
+    this->P.at<double>(2, 2) = rotRodrigues.at<double>(2, 2);
+    this->P.at<double>(2, 3) = trans.at<double>(2);
 
 }
 
@@ -192,99 +203,93 @@ void Transformation::computeProjMatrix() {
     computePerspMatrix();
 
     this->proj = this->NDC *this->Persp;
-
-    cout << "proj\n" << this->proj << endl << endl;
 }
 
-void Transformation::computeModelviewMatrix() {
+void Transformation::computeModelviewMatrix(const vector<Point2d> &edgeCoordinate) {
 
-    computeExtrinsicMatrix();
+    this->modelView = Mat(4, 4, CV_64FC1);
 
-    this->modelView.at<float>(0, 0) = this->P.at<float>(0, 0);
-    this->modelView.at<float>(0, 1) = this->P.at<float>(0, 1);
-    this->modelView.at<float>(0, 2) = this->P.at<float>(0, 2);
-    this->modelView.at<float>(0, 3) = this->P.at<float>(0, 3);
+    computeExtrinsicMatrix(edgeCoordinate);
 
-    this->modelView.at<float>(1, 0) = this->P.at<float>(1, 0);
-    this->modelView.at<float>(1, 1) = this->P.at<float>(1, 1);
-    this->modelView.at<float>(1, 2) = this->P.at<float>(1, 2);
-    this->modelView.at<float>(1, 3) = this->P.at<float>(1, 3);
+    this->modelView.at<double>(0, 0) = this->P.at<double>(0, 0);
+    this->modelView.at<double>(0, 1) = this->P.at<double>(0, 1);
+    this->modelView.at<double>(0, 2) = this->P.at<double>(0, 2);
+    this->modelView.at<double>(0, 3) = this->P.at<double>(0, 3);
 
-    this->modelView.at<float>(2, 0) = this->P.at<float>(2, 0);
-    this->modelView.at<float>(2, 1) = this->P.at<float>(2, 1);
-    this->modelView.at<float>(2, 2) = this->P.at<float>(2, 2);
-    this->modelView.at<float>(2, 3) = this->P.at<float>(2, 3);
+    this->modelView.at<double>(1, 0) = this->P.at<double>(1, 0);
+    this->modelView.at<double>(1, 1) = this->P.at<double>(1, 1);
+    this->modelView.at<double>(1, 2) = this->P.at<double>(1, 2);
+    this->modelView.at<double>(1, 3) = this->P.at<double>(1, 3);
 
-    this->modelView.at<float>(3, 0) = 0.0f;
-    this->modelView.at<float>(3, 1) = 0.0f;
-    this->modelView.at<float>(3, 2) = 0.0f;
-    this->modelView.at<float>(3, 3) = 1.0f;
+    this->modelView.at<double>(2, 0) = this->P.at<double>(2, 0);
+    this->modelView.at<double>(2, 1) = this->P.at<double>(2, 1);
+    this->modelView.at<double>(2, 2) = this->P.at<double>(2, 2);
+    this->modelView.at<double>(2, 3) = this->P.at<double>(2, 3);
 
-    cout << "modelView\n" << this->modelView << endl << endl;
+    this->modelView.at<double>(3, 0) = 0.0f;
+    this->modelView.at<double>(3, 1) = 0.0f;
+    this->modelView.at<double>(3, 2) = 0.0f;
+    this->modelView.at<double>(3, 3) = 1.0f;
 
 }
 
 void Transformation::computeNDCMatrix() {
 
-    this->NDC = Mat(4, 4, CV_32FC1);
+    this->NDC = Mat(4, 4, CV_64FC1);
 
-    float left = 0.0f;
-    float right = 1.0f;
-    float bottom = 0.0f;
-    float top = 1.0f;
+    double left = 0.0f;
+    double right = this->size.width;
+    double bottom = 0.0f;
+    double top = this->size.height;
 
-    float tx = -(right + left) / (right - left);
-    float ty = -(top + bottom) / (top - bottom);
-    float tz = -(this->F + this->N) / (this->F - this->N);
+    double tx = -(right + left) / (right - left);
+    double ty = -(top + bottom) / (top - bottom);
+    double tz = -(this->F + this->N) / (this->F - this->N);
 
-    this->NDC.at<float>(0, 0) = 2.0f / (right - left);
-    this->NDC.at<float>(0, 1) = 0.0f;
-    this->NDC.at<float>(0, 2) = 0.0f;
-    this->NDC.at<float>(0, 3) = tx;
+    this->NDC.at<double>(0, 0) = 2.0f / (right - left);
+    this->NDC.at<double>(0, 1) = 0.0f;
+    this->NDC.at<double>(0, 2) = 0.0f;
+    this->NDC.at<double>(0, 3) = tx;
 
-    this->NDC.at<float>(1, 0) = 0.0f;
-    this->NDC.at<float>(1, 1) = 2.0f / (top - bottom);
-    this->NDC.at<float>(1, 2) = 0.0f;
-    this->NDC.at<float>(1, 3) = ty;
+    this->NDC.at<double>(1, 0) = 0.0f;
+    this->NDC.at<double>(1, 1) = 2.0f / (top - bottom);
+    this->NDC.at<double>(1, 2) = 0.0f;
+    this->NDC.at<double>(1, 3) = ty;
 
-    this->NDC.at<float>(2, 0) = 0.0f;
-    this->NDC.at<float>(2, 1) = 0.0f;
-    this->NDC.at<float>(2, 2) = -2.0f / (this->F - this->N);
-    this->NDC.at<float>(2, 3) = tz;
+    this->NDC.at<double>(2, 0) = 0.0f;
+    this->NDC.at<double>(2, 1) = 0.0f;
+    this->NDC.at<double>(2, 2) = 2.0f / (this->F - this->N);
+    this->NDC.at<double>(2, 3) = tz;
 
-    this->NDC.at<float>(3, 0) = 0.0f;
-    this->NDC.at<float>(3, 1) = 0.0f;
-    this->NDC.at<float>(3, 2) = 0.0f;
-    this->NDC.at<float>(3, 3) = 1.0f;
-
-    cout << "NDC\n" << this->NDC << endl << endl;
+    this->NDC.at<double>(3, 0) = 0.0f;
+    this->NDC.at<double>(3, 1) = 0.0f;
+    this->NDC.at<double>(3, 2) = 0.0f;
+    this->NDC.at<double>(3, 3) = 1.0f;
 
 }
 
 void Transformation::computePerspMatrix() {
 
-    this->Persp = Mat(4, 4, CV_32FC1);
+    this->Persp = Mat(4, 4, CV_64FC1);
 
-    this->Persp.at<float>(0, 0) = this->K.at<float>(0, 0);
-    this->Persp.at<float>(0, 1) = this->K.at<float>(0, 1);
-    this->Persp.at<float>(0, 2) = this->K.at<float>(0, 2);
-    this->Persp.at<float>(0, 3) = 0.0f;
+    this->Persp.at<double>(0, 0) = this->K.at<double>(0, 0);
+    this->Persp.at<double>(0, 1) = this->K.at<double>(0, 1);
+    this->Persp.at<double>(0, 2) = this->K.at<double>(0, 2);
+    this->Persp.at<double>(0, 3) = 0.0f;
 
-    this->Persp.at<float>(1, 0) = this->K.at<float>(1, 0);
-    this->Persp.at<float>(1, 1) = this->K.at<float>(1, 1);
-    this->Persp.at<float>(1, 2) = this->K.at<float>(1, 2);
-    this->Persp.at<float>(1, 3) = 0.0f;
+    this->Persp.at<double>(1, 0) = 0.0f;
+    this->Persp.at<double>(1, 1) = this->K.at<double>(1, 1);
+    this->Persp.at<double>(1, 2) = this->K.at<double>(1, 2);
+    this->Persp.at<double>(1, 3) = 0.0f;
 
-    this->Persp.at<float>(2, 0) = this->K.at<float>(2, 0);
-    this->Persp.at<float>(2, 1) = this->K.at<float>(2, 1);
-    this->Persp.at<float>(2, 2) = this->N + this->F;
-    this->Persp.at<float>(2, 3) = this->N * this->F;
+    this->Persp.at<double>(2, 0) = 0.0f;
+    this->Persp.at<double>(2, 1) = 0.0f;
+    this->Persp.at<double>(2, 2) = this->N + this->F;
+    this->Persp.at<double>(2, 3) = -this->N * this->F;  /// LE MOINS DOU IL SORT ?!?!????
 
-    this->Persp.at<float>(3, 0) = 0.0f;
-    this->Persp.at<float>(3, 1) = 0.0f;
-    this->Persp.at<float>(3, 2) = -1.0f;
-    this->Persp.at<float>(3, 3) = 0.0f;
-
-    cout << "Persp\n" << this->Persp << endl << endl;
+    this->Persp.at<double>(3, 0) = 0.0f;
+    this->Persp.at<double>(3, 1) = 0.0f;
+    this->Persp.at<double>(3, 2) = this->K.at<double>(2, 2);
+    this->Persp.at<double>(3, 3) = 0.0f;
 
 }

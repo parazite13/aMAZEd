@@ -20,7 +20,7 @@ public:
 private:
 
     static void drawAxes();
-    static void drawSquare();
+    static void drawMazeGround();
     static void drawBackground();
     static void loadTexture(GLuint id, cv::Mat img);
     static void display();
