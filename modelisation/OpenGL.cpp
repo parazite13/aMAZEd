@@ -6,10 +6,11 @@ using namespace cv;
 using namespace std;
 
 extern Mat textMaze;
-extern float p[16];
-extern float m[16];
+extern Mat textCam;
+extern double p[16];
+extern double m[16];
 
-float mat[16];   // DEBUG
+//double mat[16];   // DEBUG
 
 /// Fonction qui s'appelle en boucle définie dans le main
 void loop(int);
@@ -27,6 +28,8 @@ void OpenGL::init(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutCreateWindow("aMAZEd");
     glEnable(GL_DEPTH_TEST);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 	// Nécessaire pour éviter une déformation de l'image
+
 
     glutDisplayFunc(display);
     glutReshapeFunc(resize);
@@ -81,9 +84,9 @@ void OpenGL::drawAxes(){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, 'z');
 }
 
-void OpenGL::drawSquare(){
+void OpenGL::drawMazeGround(){
+    loadTexture(ID_TEXT_MAZE, textMaze);
     glBegin(GL_POLYGON);
-    glColor3f(1.0, 1.0, 1.0);
     glTexCoord2d(0, 1);glVertex3f(0.0f, 0.0f, 0.0f);
     glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, 0.0f);
     glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, 0.0f);
@@ -91,12 +94,13 @@ void OpenGL::drawSquare(){
     glEnd();
 }
 
-void OpenGL::drawBackground(){
+void OpenGL::drawBackground() {
+    loadTexture(ID_TEXT_MAZE, textCam);
     glBegin(GL_POLYGON);
-    glTexCoord2d(0, 1);glVertex3f(0.0f, 0.0f, -5.0f);
-    glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, -5.0f);
-    glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, -5.0f);
-    glTexCoord2d(1, 1);glVertex3f(1.0f, 0.0f, -5.0f);
+    glTexCoord2d(0, 1);glVertex3f(-0.66f, -0.5f, 1.1f);
+    glTexCoord2d(0, 0);glVertex3f(-0.66f, 0.5f, 1.1f);
+    glTexCoord2d(1, 0);glVertex3f(0.66f, 0.5f, 1.1f);
+    glTexCoord2d(1, 1);glVertex3f(0.66f, -0.5f, 1.1f);
     glEnd();
 }
 
@@ -129,38 +133,41 @@ void OpenGL::display() {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-//    glOrtho(0, 1, 0, 1, -10, 10);
-    glMultMatrixf(p);
+    glMultMatrixd(p);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-//    glMultMatrixf(h);
-    glMultMatrixf(m);
 
-    drawAxes();
-    loadTexture(ID_TEXT_MAZE, textMaze);
-    drawSquare();
+//    gluLookAt(0.0, 0.0, 2.0,
+//                0.0, 0.0, 0.0,
+//    0.0, 1.0, 0.0);
 
-//    loadTexture(ID_TEXT_CAM, textCam);
+
 //    drawBackground();
 
-    cout << "OPENGL PROJ" << endl;
-    glGetFloatv(GL_PROJECTION_MATRIX, mat);
+    glLoadMatrixd(m);
+
+    drawAxes();
+    drawMazeGround();
+
+
+    /*cout << "OPENGL PROJ" << endl;
+    glGetDoublev(GL_PROJECTION_MATRIX, mat);
     for(int i = 0; i < 4; i++){
         for(int j = 0; j < 4; j++){
-            cout << mat[i + j * 4] << ", ";
+            cout << mat[i * 4 + j] << ", ";
         }
         cout << endl;
     }
 
     cout << "OPENGL MODELVIEW" << endl;
-    glGetFloatv(GL_MODELVIEW_MATRIX, mat);
+    glGetDoublev(GL_MODELVIEW_MATRIX, mat);
     for(int i = 0; i < 4; i++){
         for(int j = 0; j < 4; j++){
-            cout << mat[i + j * 4] << ", ";
+            cout << mat[i * 4 + j] << ", ";
         }
         cout << endl;
-    }
+    }*/
 
     glutSwapBuffers();
 

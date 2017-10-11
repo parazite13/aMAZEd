@@ -9,12 +9,12 @@ private:
 
     const float FX = 550;
     const float FY = 550;
-    float X0;
-    float Y0;
+    double X0;
+    double Y0;
 
     cv::Size size;  // size.width => w, size.height => h
-    float N;
-    float F;
+    double N;
+    double F;
 
     cv::Mat K;  // Intrinsic
     cv::Mat P;  // Extrinsic
@@ -25,22 +25,22 @@ private:
     cv::Mat proj;
     cv::Mat modelView;
 
-    void computeHomographyMatrix(std::vector<cv::Point2d> &edgeCoordinate);
+    void computeHomographyMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
     void computeIntrinsicMatrix();
-    void computeExtrinsicMatrix();
+    void computeExtrinsicMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
     void computeProjMatrix();
-    void computeModelviewMatrix();
+    void computeModelviewMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
     void computeNDCMatrix();
     void computePerspMatrix();
 
 public:
 
-    Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, float near, float far);
+    Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, double near, double far);
 
-    void getModelviewMatrix(float matrix[]);
-    void getProjectionMatrix(float matrix[]);
+    void getModelviewMatrix(double matrix[]);
+    void getProjectionMatrix(double matrix[]);
 
-    void getHomography(float matrix[]);
+    void getHomography(double matrix[]);
 };
 
 
