@@ -1,10 +1,36 @@
 #include <iostream>
 #include "EdgeDetection.h"
 #include "opencv2/opencv.hpp"
+#include "../stream/CameraStream.h"
 
 using namespace std;
 using namespace cv;
 
+CameraStream extern cameraStream;
+
+int h = 0;
+int s = 230;
+
+
+void EdgeDetection::colorCalibration(){
+    std::vector<Point2d> keypoints;
+    Mat img;
+    int minh = 50;
+    int maxh = 95;
+    while(keypoints.size() < 4){
+        h = (h-minh+7)%(maxh-minh)+minh;
+        img = cameraStream.getCurrentFrame();
+        keypoints = getCorner(img);
+
+        if(h == 65){
+            s = s-20;
+            if(s <= 120){
+                s = 210;
+            }
+        }
+    }
+
+}
 
 vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> coordCorner){
     /// détection des contours avec Canny
@@ -77,45 +103,63 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
 
 vector<Point2d> EdgeDetection::getCorner(Mat img) {
 
+    ///Liste contenant les points des coins du plan
+    std::vector<KeyPoint> keypoints;
+    ///Masque
+    Mat mask;
+
     ///déclaration et calcul de l'image hsv
     Mat hsv;
     cvtColor(img, hsv, CV_BGR2HSV);
 
-    circle(img, Point(300,300), 5, Scalar(0,0,255));
-    cout << (int)hsv.at<Vec3b>(300, 300)[0] << endl;
-    cout << (int)hsv.at<Vec3b>(300, 300)[1] << endl;
+    circle(img, Point(300, 300), 5, Scalar(0, 0, 255));
+    cout << "h = " << (int) hsv.at<Vec3b>(300, 300)[0] << endl;
+    cout << "s = " << (int) hsv.at<Vec3b>(300, 300)[1] << endl;
+    cout << "l = " << (int) hsv.at<Vec3b>(300, 300)[2] << endl;
 
     ///réglage des seuils de tolérance
-    int h = 160;
-    int s = 140;
+    int toleranceh = 12;
+    int tolerances = 45;
 
-    int toleranceh = 30;
-    int tolerances = 40;
-
-    Mat mask;
     ///affichage de l'image suivant les seuils de tolérance
-    inRange(hsv, Scalar(h-toleranceh, s-tolerances, 0), Scalar(h+toleranceh, s+tolerances, 255), mask);
-    Mat kernel;
-    kernel = getStructuringElement(2, Size(5,5), Point(2,2));
-    erode(mask, mask, kernel);
-    dilate(mask, mask, kernel);
+    inRange(hsv, Scalar(h - toleranceh, s - tolerances, 50), Scalar(h + toleranceh, s + tolerances, 255), mask);
+
+    /// On inverse le mask
     mask = ~mask;
 
+    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
+    Mat maskTemp = mask.clone();
+    cv::floodFill(maskTemp, cv::Point(0, 0), CV_RGB(0, 0, 0));
+    maskTemp = ~maskTemp;
+    mask = maskTemp & mask;
+
+//    permet de voir les pixel de la couleur
+//    int c = 0;
+//    for(int i = 0; i < mask.rows; i++){
+//        for(int j = 0; j < mask.rows; j++){
+//            if((int)mask.at<uchar>(i,j) == 0){
+//                c++;
+//            }
+//        }
+//    }
+//
+//    cout << c << endl;
     ///paramètre pour la détection des composantes connexes
     SimpleBlobDetector::Params params;
 
     params.minThreshold = 0;
     params.maxThreshold = 100;
     params.filterByArea = true;
-    params.minArea = 500;
-    params.maxArea = 10000;
+    params.minArea = 300;
+    params.maxArea = 3500;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
     params.filterByInertia = false;
 
     cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
-    std::vector<KeyPoint> keypoints;
-    detector->detect( mask, keypoints );
+
+    detector->detect(mask, keypoints);
+
 
     ///dessine les cercles correspondant aux composantes connexes
     drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
@@ -126,25 +170,13 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     ///vector qui contient les coordonnées des coins
     vector<Point2d> coordCorner;
 
+
+
     if(keypoints.size() == 4){
         for(int i=0 ; i<4 ; i++ ){
             coordCorner.push_back(keypoints[i].pt);
         }
         /// ordre des points en fonction des exigences de la modélisation
-        coordCorner = sortPoints(coordCorner);
-    }
-        /// si plus de 4 composantes connexes trouvées on prends les 4 plus grosses
-    else if(keypoints.size() > 4){
-        for(int i=0 ; i<4 ; i++ ){
-            int imax = 0;
-            for(int j = 1 ; j< keypoints.size() ; j++) {
-                if (keypoints[j].size > keypoints[imax].size) {
-                    imax = j;
-                }
-            }
-            coordCorner.push_back(keypoints[imax].pt);
-            keypoints[imax].size = 0;
-        }
         coordCorner = sortPoints(coordCorner);
     }
     return coordCorner;
