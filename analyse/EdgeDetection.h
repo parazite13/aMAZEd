@@ -24,6 +24,10 @@ private:
 
 public:
 
+     /* Permet de trouver la teinte et la saturation des coins du plan
+     */
+    static void colorCalibration();
+
     /* détecte les couleurs d'une image
      * @params
      *      img : l'image où il faut détecter les couleurs
