@@ -13,7 +13,7 @@ int s = 230;
 
 
 void EdgeDetection::colorCalibration(){
-    std::vector<Point2d> keypoints;
+    std::vector<Point2i> keypoints;
     Mat img;
     int minh = 50;
     int maxh = 95;
@@ -32,7 +32,7 @@ void EdgeDetection::colorCalibration(){
 
 }
 
-vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> coordCorner){
+vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> coordCorner){
     /// détection des contours avec Canny
     Mat imgCanny;
     Canny(img, imgCanny, 100, 200, 3);
@@ -53,7 +53,7 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
     HoughLinesP(imgCanny, lines, 1, CV_PI/180, 10, 20, 5);
 
     /// tableau de couples de points
-    vector<vector<Point2f>> vectLines;
+    vector<vector<Point2i>> vectLines;
 
     ///Initialisation du mask
     Mat mask = Mat::zeros(img.size(), CV_8UC1);
@@ -75,12 +75,10 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
         fillPoly(mask, ppt, npt, 1, Scalar(255, 255, 255), 8);
     }
 
-
-
     for(Vec4i l : lines){
 
         /// couple de points
-        vector<Point2f> vectPoints ;
+        vector<Point2i> vectPoints ;
         vectPoints.emplace_back(l[0], l[1]);
         vectPoints.emplace_back(l[2], l[3]);
 
@@ -93,15 +91,13 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
         }
     }
 
-    namedWindow("2",WINDOW_AUTOSIZE);
-    imshow("2", img);
 
     return(vectLines);
 }
 
 
 
-vector<Point2d> EdgeDetection::getCorner(Mat img) {
+vector<Point2i> EdgeDetection::getCorner(Mat img) {
 
     ///Liste contenant les points des coins du plan
     std::vector<KeyPoint> keypoints;
@@ -111,11 +107,6 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     ///déclaration et calcul de l'image hsv
     Mat hsv;
     cvtColor(img, hsv, CV_BGR2HSV);
-
-    circle(img, Point(300, 300), 5, Scalar(0, 0, 255));
-    cout << "h = " << (int) hsv.at<Vec3b>(300, 300)[0] << endl;
-    cout << "s = " << (int) hsv.at<Vec3b>(300, 300)[1] << endl;
-    cout << "l = " << (int) hsv.at<Vec3b>(300, 300)[2] << endl;
 
     ///réglage des seuils de tolérance
     int toleranceh = 12;
@@ -133,25 +124,15 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     maskTemp = ~maskTemp;
     mask = maskTemp & mask;
 
-//    permet de voir les pixel de la couleur
-//    int c = 0;
-//    for(int i = 0; i < mask.rows; i++){
-//        for(int j = 0; j < mask.rows; j++){
-//            if((int)mask.at<uchar>(i,j) == 0){
-//                c++;
-//            }
-//        }
-//    }
-//
-//    cout << c << endl;
+
     ///paramètre pour la détection des composantes connexes
     SimpleBlobDetector::Params params;
 
     params.minThreshold = 0;
     params.maxThreshold = 100;
     params.filterByArea = true;
-    params.minArea = 300;
-    params.maxArea = 3500;
+    params.minArea = 500;
+    params.maxArea = 10000;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
     params.filterByInertia = false;
@@ -168,16 +149,14 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
     imshow("1", mask);
 
     ///vector qui contient les coordonnées des coins
-    vector<Point2d> coordCorner;
-
-
+    vector<Point2i> coordCorner;
 
     if(keypoints.size() == 4){
         for(int i=0 ; i<4 ; i++ ){
             coordCorner.push_back(keypoints[i].pt);
         }
         /// ordre des points en fonction des exigences de la modélisation
-        coordCorner = sortPoints(coordCorner);
+        coordCorner = sortPoints(coordCorner,hsv);
     }
     return coordCorner;
 
@@ -189,7 +168,7 @@ bool sortByY(Point p1, Point p2){
     return p1.y>p2.y ;
 }
 
-vector<Point2d> EdgeDetection::sortPoints(vector<Point2d> coord){
+vector<Point2i> EdgeDetection::sortPoints(vector<Point2i> coord, Mat imgHSV){
     /// tri du y le plus grand au plus petit
     sort(coord.begin(), coord.end(), sortByY);
     /// comparaison des deux du bas et des deux du haut
@@ -198,6 +177,17 @@ vector<Point2d> EdgeDetection::sortPoints(vector<Point2d> coord){
     ///réarangement qui marche =)
     swap(coord[1],coord[2]);
     swap(coord[2],coord[3]);
+
+    // h+-12  s+-45
+//    int compt =0;// sécurité
+//    while( !((int)imgHSV.at<Vec3b>(coord[0].x,coord[0].y)[0] > h - 12
+//            && (int)imgHSV.at<Vec3b>(coord[0].x,coord[0].y)[0] < h + 12
+//            && (int)imgHSV.at<Vec3b>(coord[0].x,coord[0].y)[1] > s - 45
+//            && (int)imgHSV.at<Vec3b>(coord[0].x,coord[0].y)[1] < s + 45
+//        ) && compt < 5){ //tant que le point unique n'est pas en premier on rotato
+//        std::rotate(coord.begin(),coord.begin()+1,coord.end());
+//        compt++;
+//    }
 
     return coord;
 }

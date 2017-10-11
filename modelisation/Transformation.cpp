@@ -8,7 +8,7 @@
 using namespace cv;
 using namespace std;
 
-Transformation::Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, double near, double far) {
+Transformation::Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Size size, double near, double far) {
 
     this->X0 = size.width / 2;
     this->Y0 = size.height / 2;
@@ -96,7 +96,7 @@ void Transformation::getModelviewMatrix(double *matrix) {
 
 }
 
-void Transformation::computeHomographyMatrix(const vector<Point2d> &edgeCoordinate) {
+void Transformation::computeHomographyMatrix(const vector<Point2i> &edgeCoordinate) {
 
     this->proj = Mat(4, 4, CV_64FC1);
 
@@ -132,7 +132,7 @@ void Transformation::computeIntrinsicMatrix() {
 
 }
 
-void Transformation::computeExtrinsicMatrix(const vector<Point2d> &edgeCoordinate) {
+void Transformation::computeExtrinsicMatrix(const vector<Point2i> &edgeCoordinate) {
 
     vector<Point2f> imagePoints;
     for(const auto &i : edgeCoordinate){
@@ -205,7 +205,7 @@ void Transformation::computeProjMatrix() {
     this->proj = this->NDC *this->Persp;
 }
 
-void Transformation::computeModelviewMatrix(const vector<Point2d> &edgeCoordinate) {
+void Transformation::computeModelviewMatrix(const vector<Point2i> &edgeCoordinate) {
 
     this->modelView = Mat(4, 4, CV_64FC1);
 
