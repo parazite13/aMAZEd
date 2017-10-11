@@ -25,17 +25,17 @@ private:
     cv::Mat proj;
     cv::Mat modelView;
 
-    void computeHomographyMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
+    void computeHomographyMatrix(const std::vector<cv::Point2i> &edgeCoordinate);
     void computeIntrinsicMatrix();
-    void computeExtrinsicMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
+    void computeExtrinsicMatrix(const std::vector<cv::Point2i> &edgeCoordinate);
     void computeProjMatrix();
-    void computeModelviewMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
+    void computeModelviewMatrix(const std::vector<cv::Point2i> &edgeCoordinate);
     void computeNDCMatrix();
     void computePerspMatrix();
 
 public:
 
-    Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, double near, double far);
+    Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Size size, double near, double far);
 
     void getModelviewMatrix(double matrix[]);
     void getProjectionMatrix(double matrix[]);

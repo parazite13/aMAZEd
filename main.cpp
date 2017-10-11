@@ -25,7 +25,7 @@ int main(int argc, char** argv){
 
 void loop(int){
 
-    vector<Point2d> coordCorner;
+    vector<Point2i> coordCorner;
     Mat currentFrame = cameraStream.getCurrentFrame();
 //    Mat currentFrame = imread("toto.png");
     textCam = currentFrame;
