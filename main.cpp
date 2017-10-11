@@ -17,6 +17,7 @@ double m[16];
 
 int main(int argc, char** argv){
 
+    EdgeDetection::colorCalibration();
     OpenGL::init(argc, argv);
 
     return 0;
