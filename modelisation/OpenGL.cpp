@@ -10,32 +10,98 @@ extern Mat textCam;
 extern double p[16];
 extern double m[16];
 
-//double mat[16];   // DEBUG
-
-/// Fonction qui s'appelle en boucle définie dans le main
 void loop(int);
 
-void OpenGL::init(int argc, char** argv) {
+OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title){
 
-    int h = 0;
-    int w = 0;
-    CameraStream::getDesktopResolution(w, h);
+    this->width  = setWidth;
+    this->height = setHeight;
+
+    this->initPositionX = setInitPositionX;
+    this->initPositionY = setInitPositionY;
+
+    this->homography = Mat(3, 3, CV_64FC1);
 
     textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
 
-    glutInit(&argc, argv);
-    glutInitWindowSize(4*h/3, h);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-    glutCreateWindow("aMAZEd");
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
+    glutInitWindowSize(width, height);
+    glutInitWindowPosition(initPositionX, initPositionY);
+    glViewport(0, 0, width, height);   // This may have to be moved to after the next line on some platforms
+
+    glutMaster->CallGlutCreateWindow(title, this);
+
     glEnable(GL_DEPTH_TEST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 	// Nécessaire pour éviter une déformation de l'image
+}
 
+OpenGL::~OpenGL(){
+    glutDestroyWindow(windowID);
+}
 
-    glutDisplayFunc(display);
-    glutReshapeFunc(resize);
+void OpenGL::CallBackDisplayFunc(){
 
-    glutMainLoop();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
 
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, 1.0, 0.0, 1.0, -10, 10);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    drawBackground();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(p);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glLoadMatrixd(m);
+//    drawAxes();
+    drawMazeGround();
+
+    drawWalls();
+
+    glutSwapBuffers();
+
+    glutTimerFunc((unsigned int)1000 / FPS, loop, 0);
+}
+
+void OpenGL::CallBackReshapeFunc(int w, int h){
+
+    width = w;
+    height= h;
+
+    glViewport(0, 0, width, height);
+    CallBackDisplayFunc();
+}
+
+void OpenGL::CallBackIdleFunc(){
+    CallBackDisplayFunc();
+}
+
+void OpenGL::loadTexture(GLuint id, Mat img) {
+
+    glBindTexture(GL_TEXTURE_2D, id);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    glTexImage2D(GL_TEXTURE_2D,     // Type of texture
+                 0,                 // Pyramid level (for mip-mapping) - 0 is the top level
+                 GL_RGB,            // Internal colour format to convert to
+                 img.cols,          // Image width  i.e. 640 for Kinect in standard mode
+                 img.rows,          // Image height i.e. 480 for Kinect in standard mode
+                 0,                 // Border width in pixels (can either be 1 or 0)
+                 0x80E0,            // Valeur correspondante à GL_BGR
+                 GL_UNSIGNED_BYTE,  // Image data type
+                 img.data);         // The actual image data itself
+
+    glEnable(GL_TEXTURE_2D);
 }
 
 void OpenGL::drawAxes(){
@@ -97,83 +163,60 @@ void OpenGL::drawMazeGround(){
 void OpenGL::drawBackground() {
     loadTexture(ID_TEXT_MAZE, textCam);
     glBegin(GL_POLYGON);
-    glTexCoord2d(0, 1);glVertex3f(-0.66f, -0.5f, 1.1f);
-    glTexCoord2d(0, 0);glVertex3f(-0.66f, 0.5f, 1.1f);
-    glTexCoord2d(1, 0);glVertex3f(0.66f, 0.5f, 1.1f);
-    glTexCoord2d(1, 1);glVertex3f(0.66f, -0.5f, 1.1f);
+    glTexCoord2d(0, 1);glVertex3f(0.0, 0.0f, -5.0f);
+    glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, -5.0f);
+    glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, -5.0f);
+    glTexCoord2d(1, 1);glVertex3f(1.0f, 0.0f, -5.0f);
     glEnd();
 }
 
-void OpenGL::loadTexture(GLuint id, Mat img) {
+void OpenGL::drawWalls() {
 
-    glBindTexture(GL_TEXTURE_2D, id);
+    glColor3f(1, 0, 0);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    /// Pour chaucune des lignes
+    for(const auto &line : lines){
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        Mat pointImageA = Mat(3, 1, CV_64FC1);
+        pointImageA.at<double>(0) = line[0].x;
+        pointImageA.at<double>(1) = line[0].y;
+        pointImageA.at<double>(2) = 0;
 
-    glTexImage2D(GL_TEXTURE_2D,     // Type of texture
-                 0,                 // Pyramid level (for mip-mapping) - 0 is the top level
-                 GL_RGB,            // Internal colour format to convert to
-                 img.cols,          // Image width  i.e. 640 for Kinect in standard mode
-                 img.rows,          // Image height i.e. 480 for Kinect in standard mode
-                 0,                 // Border width in pixels (can either be 1 or 0)
-                 0x80E0,            // Valeur correspondante à GL_BGR
-                 GL_UNSIGNED_BYTE,  // Image data type
-                 img.data);         // The actual image data itself
+        Mat pointImageB = Mat(3, 1, CV_64FC1);
+        pointImageB.at<double>(0) = line[1].x;
+        pointImageB.at<double>(1) = line[1].y;
+        pointImageB.at<double>(2) = 0;
 
-    glEnable(GL_TEXTURE_2D);
-}
+        Mat pointModelA = homography * pointImageA;
+        Mat pointModelB = homography * pointImageB;
 
-void OpenGL::display() {
+        glBegin(GL_POLYGON);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), 0);
+        glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), WALL_HEIGHT);
+        glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), WALL_HEIGHT);
+        glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), 0);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMultMatrixd(p);
+        /*cout << "LES POINTS" << endl;
+        cout << pointModelA.at<double>(0) << ", " << pointModelA.at<double>(1) << ", " << 0 << endl;
+        cout << pointModelA.at<double>(0) << ", " << pointModelA.at<double>(1) << ", " << WALL_HEIGHT << endl;
+        cout << pointModelB.at<double>(0) << ", " << pointModelB.at<double>(1) << ", " << WALL_HEIGHT << endl;
+        cout << pointModelB.at<double>(0) << ", " << pointModelB.at<double>(1) << ", " << 0 << endl;*/
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+        glEnd();
 
-//    gluLookAt(0.0, 0.0, 2.0,
-//                0.0, 0.0, 0.0,
-//    0.0, 1.0, 0.0);
+        cout << line << endl;
 
-
-//    drawBackground();
-
-    glLoadMatrixd(m);
-
-    drawAxes();
-    drawMazeGround();
-
-
-    /*cout << "OPENGL PROJ" << endl;
-    glGetDoublev(GL_PROJECTION_MATRIX, mat);
-    for(int i = 0; i < 4; i++){
-        for(int j = 0; j < 4; j++){
-            cout << mat[i * 4 + j] << ", ";
-        }
-        cout << endl;
     }
 
-    cout << "OPENGL MODELVIEW" << endl;
-    glGetDoublev(GL_MODELVIEW_MATRIX, mat);
-    for(int i = 0; i < 4; i++){
-        for(int j = 0; j < 4; j++){
-            cout << mat[i * 4 + j] << ", ";
-        }
-        cout << endl;
-    }*/
+    glColor3f(1.0, 1.0, 1.0);
 
-    glutSwapBuffers();
-
-    glutTimerFunc(1000 / FPS, loop, 0);
 }
 
-void OpenGL::resize(int width, int height){
-    glViewport(0, 0, width, height);
+void OpenGL::setHomography(cv::Mat &mat) {
+    this->homography = mat;
+}
+
+void OpenGL::setLines(std::vector<std::vector<cv::Point2f>> &lines) {
+    this->lines = lines;
 }

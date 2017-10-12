@@ -77,9 +77,10 @@ public:
      */
     void getProjectionMatrix(double matrix[]);
     
-    /** Permet de créer une matrice compatible avec openGL de la mtrice homographie
+    /** @return
+     *      La matrice d'homographie 3x3
      */
-    void getHomography(double matrix[]);
+    cv::Mat & getHomography();
 };
 
 

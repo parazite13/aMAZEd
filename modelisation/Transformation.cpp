@@ -24,27 +24,8 @@ Transformation::Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Siz
 
 }
 
-void Transformation::getHomography(double *matrix) {
-
-    matrix[0] = this->H.at<double>(0, 0);
-    matrix[1] = this->H.at<double>(1, 0);
-    matrix[2] = 0.0f;
-    matrix[3] = this->H.at<double>(2, 0);
-
-    matrix[4] = this->H.at<double>(0, 1);
-    matrix[5] = this->H.at<double>(1, 1);
-    matrix[6] = 0.0f;
-    matrix[7] = this->H.at<double>(2, 1);
-
-    matrix[8] = 0.0f;
-    matrix[9] = 0.0f;
-    matrix[10] = 1.0f;
-    matrix[11] = 0.0f;
-
-    matrix[12] = this->H.at<double>(0, 2);
-    matrix[13] = this->H.at<double>(1, 2);
-    matrix[14] = 0.0f;
-    matrix[15] = this->H.at<double>(2, 2);
+Mat & Transformation::getHomography() {
+    return this->H;
 }
 
 
@@ -98,8 +79,6 @@ void Transformation::getModelviewMatrix(double *matrix) {
 
 void Transformation::computeHomographyMatrix(const vector<Point2d> &edgeCoordinate) {
 
-    this->proj = Mat(4, 4, CV_64FC1);
-
     vector<Point2f> imagePoints;
     for(const auto &i : edgeCoordinate){
         imagePoints.emplace_back(i.x, this->size.height - i.y);
@@ -111,7 +90,7 @@ void Transformation::computeHomographyMatrix(const vector<Point2d> &edgeCoordina
     modelPoints.emplace_back(1.0, 1.0);
     modelPoints.emplace_back(1.0, 0.0);
 
-    this->H = findHomography(modelPoints, imagePoints, RANSAC);
+    this->H = findHomography(imagePoints, modelPoints);
 }
 
 void Transformation::computeIntrinsicMatrix() {
@@ -173,10 +152,6 @@ void Transformation::computeExtrinsicMatrix(const vector<Point2d> &edgeCoordinat
 
     Mat rotRodrigues;
     Rodrigues(rot, rotRodrigues);
-
-    cout << "ROT" << endl << rotRodrigues << endl;
-    cout << "TRANS" << endl << trans << endl;
-
 
     this->P = Mat(3, 4, CV_64FC1);
 
