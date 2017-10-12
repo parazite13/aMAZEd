@@ -36,7 +36,7 @@ int main(int argc, char** argv){
 
 void loop(int){
 
-    vector<Point2d> coordCorner;
+    vector<Point2i> coordCorner;
     Mat currentFrame = cameraStream.getCurrentFrame();
     textCam = cameraStream.getCurrentFrame();
     coordCorner = EdgeDetection::getCorner(currentFrame);

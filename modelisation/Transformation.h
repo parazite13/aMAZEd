@@ -29,7 +29,7 @@ private:
      * @params
      *      edgeCoordinate : coordonnés des quatre coins sur le flux caméra
      */
-    void computeHomographyMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
+    void computeHomographyMatrix(const std::vector<cv::Point2i> &edgeCoordinate);
     
     /** Calcule la matrice intrinseque
      */
@@ -39,7 +39,7 @@ private:
      * @params
      *      edgeCoordinate : coordonnés des quatre coins sur le flux caméra
      */
-    void computeExtrinsicMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
+    void computeExtrinsicMatrix(const std::vector<cv::Point2i> &edgeCoordinate);
     
     /** Calcule la matrice de projection en multipliant la matrice NDC et Persp
      */
@@ -49,7 +49,7 @@ private:
      * @params
      *      edgeCoordinate : coordonnés des quatre coins sur le flux caméra
      */
-    void computeModelviewMatrix(const std::vector<cv::Point2d> &edgeCoordinate);
+    void computeModelviewMatrix(const std::vector<cv::Point2i> &edgeCoordinate);
     
     /** Calcule de a matrice NDC (Normalized Device Coordinate) (équivalente à celle donnée apar glOrtho)
      */
@@ -67,7 +67,7 @@ public:
      *      near : distance minimale a afficher devant la caméra
      *      far : distance maximale a afficher devant la caméra
      */
-    Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, double near, double far);
+    Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Size size, double near, double far);
     
     /** Permet de créer une matrice compatible avec openGL de modelView
      */
