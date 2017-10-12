@@ -40,7 +40,7 @@ void loop(int){
     Mat currentFrame = cameraStream.getCurrentFrame();
     textCam = cameraStream.getCurrentFrame();
     coordCorner = EdgeDetection::getCorner(currentFrame);
-    vector<vector<Point2f>> lines = EdgeDetection::linesDetection(currentFrame, coordCorner);
+    vector<vector<Point2i>> lines = EdgeDetection::linesDetection(currentFrame, coordCorner);
 
     /// Si les 4 coins ont été détéctées
     if(coordCorner.size() == 4){

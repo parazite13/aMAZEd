@@ -58,7 +58,7 @@ void OpenGL::CallBackDisplayFunc(){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glLoadMatrixd(m);
-//    drawAxes();
+    drawAxes();
     drawMazeGround();
 
     drawWalls();
@@ -148,6 +148,8 @@ void OpenGL::drawAxes(){
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, 'y');
     glRasterPos3f(0.0f, 0.0f, 1.1f);
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, 'z');
+
+    glColor3f(1, 1, 1);
 }
 
 void OpenGL::drawMazeGround(){
@@ -197,12 +199,6 @@ void OpenGL::drawWalls() {
         glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), WALL_HEIGHT);
         glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), 0);
 
-        /*cout << "LES POINTS" << endl;
-        cout << pointModelA.at<double>(0) << ", " << pointModelA.at<double>(1) << ", " << 0 << endl;
-        cout << pointModelA.at<double>(0) << ", " << pointModelA.at<double>(1) << ", " << WALL_HEIGHT << endl;
-        cout << pointModelB.at<double>(0) << ", " << pointModelB.at<double>(1) << ", " << WALL_HEIGHT << endl;
-        cout << pointModelB.at<double>(0) << ", " << pointModelB.at<double>(1) << ", " << 0 << endl;*/
-
         glEnd();
 
         cout << line << endl;
@@ -217,6 +213,6 @@ void OpenGL::setHomography(cv::Mat &mat) {
     this->homography = mat;
 }
 
-void OpenGL::setLines(std::vector<std::vector<cv::Point2f>> &lines) {
+void OpenGL::setLines(std::vector<std::vector<cv::Point2i>> &lines) {
     this->lines = lines;
 }
