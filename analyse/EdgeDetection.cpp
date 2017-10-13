@@ -60,7 +60,7 @@ void EdgeDetection::colorCalibration(){
 vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> coordCorner){
     /// détection des contours avec Canny
     Mat imgCanny;
-    Canny(img, imgCanny, 100, 200, 3);
+    Canny(img, imgCanny, 100, 300, 3);
 
     /// detection des lignes dans le vect lines
 
@@ -75,7 +75,7 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
     /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
 
-    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 10, 20, 5);
+    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 80, 20, 15);
 
     /// tableau de couples de points
     vector<vector<Point2i>> vectLines;
@@ -107,11 +107,12 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
         vectPoints.emplace_back(l[0], l[1]);
         vectPoints.emplace_back(l[2], l[3]);
 
-        /// ajout du couple au tableau
-        vectLines.push_back(vectPoints) ;
+
 
         ///tracé de la ligne
-        if((int)mask.at<uchar>((int)vectPoints[0].y, (int)vectPoints[0].x) == 255 && (int)mask.at<uchar>((int)vectPoints[1].y, (int)vectPoints[1].x) == 255) {
+        if((int)mask.at<uchar>(vectPoints[0].y, vectPoints[0].x) == 255 && (int)mask.at<uchar>(vectPoints[1].y, vectPoints[1].x) == 255) {
+            /// ajout du couple au tableau
+            vectLines.push_back(vectPoints) ;
             line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
         }
     }
