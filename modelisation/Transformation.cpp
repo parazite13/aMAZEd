@@ -24,7 +24,7 @@ Transformation::Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Siz
 
 }
 
-Mat & Transformation::getHomography() {
+Mat Transformation::getHomography() {
     return this->H;
 }
 
@@ -81,7 +81,7 @@ void Transformation::computeHomographyMatrix(const vector<Point2i> &edgeCoordina
 
     vector<Point2f> imagePoints;
     for(const auto &i : edgeCoordinate){
-        imagePoints.emplace_back(i.x, this->size.height - i.y);
+        imagePoints.emplace_back(i.x, i.y);
     }
 
     vector<Point2d> modelPoints;

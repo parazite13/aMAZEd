@@ -20,8 +20,6 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     this->initPositionX = setInitPositionX;
     this->initPositionY = setInitPositionY;
 
-    this->homography = Mat(3, 3, CV_64FC1);
-
     textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
@@ -174,23 +172,13 @@ void OpenGL::drawBackground() {
 
 void OpenGL::drawWalls() {
 
-    glColor3f(1, 0, 0);
+    glColor3f(1.0, 0.0, 0.0);
 
-    /// Pour chaucune des lignes
-    for(const auto &line : lines){
+    /// Pour chacune des lignes
+    for(const auto &wall : this->walls){
 
-        Mat pointImageA = Mat(3, 1, CV_64FC1);
-        pointImageA.at<double>(0) = line[0].x;
-        pointImageA.at<double>(1) = line[0].y;
-        pointImageA.at<double>(2) = 0;
-
-        Mat pointImageB = Mat(3, 1, CV_64FC1);
-        pointImageB.at<double>(0) = line[1].x;
-        pointImageB.at<double>(1) = line[1].y;
-        pointImageB.at<double>(2) = 0;
-
-        Mat pointModelA = homography * pointImageA;
-        Mat pointModelB = homography * pointImageB;
+        Mat pointModelA = wall[0];
+        Mat pointModelB = wall[1];
 
         glBegin(GL_POLYGON);
 
@@ -201,18 +189,12 @@ void OpenGL::drawWalls() {
 
         glEnd();
 
-        cout << line << endl;
-
     }
 
     glColor3f(1.0, 1.0, 1.0);
 
 }
 
-void OpenGL::setHomography(cv::Mat &mat) {
-    this->homography = mat;
-}
-
-void OpenGL::setLines(std::vector<std::vector<cv::Point2i>> &lines) {
-    this->lines = lines;
+void OpenGL::setWalls(const vector<vector<Mat>> &walls) {
+    OpenGL::walls = walls;
 }

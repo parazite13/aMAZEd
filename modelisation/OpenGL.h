@@ -27,8 +27,9 @@ public:
     GLuint const ID_TEXT_CAM = 1;
     GLuint const ID_TEXT_MAZE = 2;
 
-    cv::Mat homography;
-    std::vector<std::vector<cv::Point2i>> lines;
+    std::vector<std::vector<cv::Mat>> walls;
+
+    void setWalls(const std::vector<std::vector<cv::Mat>> &walls);
 
     int height, width;
     int initPositionX, initPositionY;
@@ -40,9 +41,6 @@ public:
     void CallBackReshapeFunc(int w, int h) override;
     void CallBackIdleFunc() override;
 
-
-    void setHomography(cv::Mat &mat);
-    void setLines(std::vector<std::vector<cv::Point2i>> &lines);
 };
 
 

@@ -80,7 +80,7 @@ public:
     /** @return
      *      La matrice d'homographie 3x3
      */
-    cv::Mat & getHomography();
+    cv::Mat getHomography();
 };
 
 
