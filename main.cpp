@@ -21,13 +21,11 @@ double p[16];
 double m[16];
 
 int main(int argc, char** argv){
-
+    Mat currentFrame = cameraStream.getCurrentFrame();
     EdgeDetection::colorCalibration();
 
     glutMaster = new GlutMaster();
-    int h = 0, w = 0;
-    CameraStream::getDesktopResolution(w, h);
-    window = new OpenGL(glutMaster, 4*h/3, h, 0, 0, (char*)("aMAZEd"));
+    window = new OpenGL(glutMaster, currentFrame.cols, currentFrame.rows, 0, 0, (char*)("aMAZEd"));
 
     glutMaster->CallGlutMainLoop();
 
