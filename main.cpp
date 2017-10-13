@@ -6,11 +6,10 @@
 using namespace cv;
 using namespace std;
 
+CameraStream *cameraStream = nullptr;
 
 GlutMaster *glutMaster;
-OpenGL *window = 0;
-
-CameraStream cameraStream = CameraStream();
+OpenGL *window = nullptr;
 
 /// Textures
 Mat textCam;
@@ -22,26 +21,28 @@ double m[16];
 
 int main(int argc, char** argv){
 
-    Mat currentFrame = cameraStream.getCurrentFrame();
+    cameraStream = new CameraStream();
+
+    EdgeDetection edgeDetection = EdgeDetection(cameraStream);
+
+    edgeDetection.colorCalibration();
+
+    Mat currentFrame = cameraStream->getCurrentFrame();
     double ratio = (double)currentFrame.cols / (double)currentFrame.rows;
     int width = 1280; //largeur de la fenêtre
-    EdgeDetection::colorCalibration();
 
     glutMaster = new GlutMaster();
     window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"));
-
+/*
     /// Detection des murs
-    vector<Point2i> coordCorner;
-    coordCorner = EdgeDetection::getCorner(currentFrame);
-    vector<vector<Point2i>> lines = EdgeDetection::linesDetection(currentFrame, coordCorner);
-
     vector<vector<Mat>> walls;
+    vector<Point2i> coordCorner;
+    coordCorner = edgeDetection.getCorner(currentFrame);
+    vector<vector<Point2i>> lines = edgeDetection.linesDetection(currentFrame, coordCorner);
 
     /// Tant que les 4 coins n'ont pas été détéctées
     do{
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
-        transformation.getProjectionMatrix(p);
-        transformation.getModelviewMatrix(m);
 
         walls.clear();
         vector<Mat> wall;
@@ -74,20 +75,24 @@ int main(int argc, char** argv){
     }while(coordCorner.size() != 4);
 
     /// Définition des murs
-    window->setWalls(walls);
+    window->setWalls(walls);*/
 
     glutMaster->CallGlutMainLoop();
+
+    delete cameraStream;
 
     return 0;
 }
 
 void loop(int){
 
+    EdgeDetection edgeDetection = EdgeDetection(cameraStream);
+
     vector<Point2i> coordCorner;
-    Mat currentFrame = cameraStream.getCurrentFrame();
-    textCam = cameraStream.getCurrentFrame();
-    coordCorner = EdgeDetection::getCorner(currentFrame);
-    EdgeDetection::linesDetection(currentFrame, coordCorner);
+    Mat currentFrame = cameraStream->getCurrentFrame();
+    textCam = cameraStream->getCurrentFrame();
+    coordCorner = edgeDetection.getCorner(currentFrame);
+    edgeDetection.linesDetection(currentFrame, coordCorner);
 
     /// Si les 4 coins ont été détéctées
     if(coordCorner.size() == 4){

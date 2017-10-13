@@ -6,9 +6,6 @@
 using namespace std;
 using namespace cv;
 
-///Récupération du flux de la caméra
-CameraStream extern cameraStream;
-
 ///Réglage de la teinte et de la saturation pour le vert
 int hGreen = 0;
 int sGreen = 230;
@@ -17,6 +14,10 @@ int sGreen = 230;
 int hPink = 0;
 int sPink = 140;
 
+
+EdgeDetection::EdgeDetection(CameraStream *cameraStream) {
+    this->cameraStream = cameraStream;
+}
 
 ///Fonction permettant la calibration de la couleur
 void EdgeDetection::colorCalibration(){
@@ -28,7 +29,7 @@ void EdgeDetection::colorCalibration(){
     while(keypoints.size() < 3){
         ///Calibration de la teinte
         hGreen = (hGreen-minh+7)%(maxh-minh)+minh;
-        img = cameraStream.getCurrentFrame();
+        img = this->cameraStream->getCurrentFrame();
         keypoints = getCorner(img);
         ///Quand on à fait une boucle sur la teinte, on baisse la saturation
         if(hGreen == minh){
@@ -45,7 +46,7 @@ void EdgeDetection::colorCalibration(){
     while(keypoints.size() < 4){
         ///Calibration de la teinte
         hPink = (hPink-minh+7)%(maxh-minh)+minh;
-        img = cameraStream.getCurrentFrame();
+        img = this->cameraStream->getCurrentFrame();
         keypoints = getCorner(img);
         ///Quand on à fait une boucle sur la teinte, on baisse la saturation
         if(hPink == minh){
@@ -56,6 +57,8 @@ void EdgeDetection::colorCalibration(){
         }
     }
 }
+
+
 
 vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> coordCorner){
     /// détection des contours avec Canny
@@ -120,7 +123,6 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
 
     return(vectLines);
 }
-
 
 
 vector<Point2i> EdgeDetection::getCorner(Mat img) {
@@ -252,7 +254,6 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
 
 
 }
-
 
 /// fonction utilisée pour trier les points
 bool sortByY(Point p1, Point p2){

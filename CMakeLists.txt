@@ -21,10 +21,4 @@ set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs openc
 set(OpenGL_LIBS libopengl32.a libglu32.a libfreeglut.a)
 
 # linking
-if(APPLE)
-    find_library(COCOA_LIBRARY Cocoa)
-    find_library(OpenGL_LIBRARY OpenGL)
-    target_link_libraries(aMAZEd PUBLIC "-framework QTKit" "-framework QuartzCore" "-framework AppKit" "-framework IOKit")
-else()
-    target_link_libraries(aMAZEd ${OpenCV_LIBS} ${OpenGL_LIBS})
-endif()
+target_link_libraries(aMAZEd ${OpenCV_LIBS} ${OpenGL_LIBS})
