@@ -15,7 +15,6 @@ public:
     bool isOpen();
     void showCamera();
     cv::Mat getCurrentFrame();
-    void static getDesktopResolution(int& , int& );
 };
 
 

@@ -15,7 +15,7 @@ int sGreen = 230;
 
 ///Réglage de la teinte et de la saturation pour le mauve
 int hPink = 0;
-int sPink = 100;
+int sPink = 140;
 
 
 ///Fonction permettant la calibration de la couleur
@@ -39,8 +39,8 @@ void EdgeDetection::colorCalibration(){
         }
     }
 
-    minh = 135;
-    maxh = 165;
+    minh = 150;
+    maxh = 175;
     ///Tant que l'on a pas le 4eme point, on cherche à calibrer le mauve
     while(keypoints.size() < 4){
         ///Calibration de la teinte
@@ -50,8 +50,8 @@ void EdgeDetection::colorCalibration(){
         ///Quand on à fait une boucle sur la teinte, on baisse la saturation
         if(hPink == minh){
             sPink = sPink-30;
-            if(sPink <= 0){
-                sPink = 100;
+            if(sPink <= 80){
+                sPink = 140;
             }
         }
     }
@@ -60,7 +60,7 @@ void EdgeDetection::colorCalibration(){
 vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> coordCorner){
     /// détection des contours avec Canny
     Mat imgCanny;
-    Canny(img, imgCanny, 100, 200, 3);
+    Canny(img, imgCanny, 100, 300, 3);
 
     /// detection des lignes dans le vect lines
 
@@ -75,7 +75,7 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
     /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
 
-    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 10, 20, 5);
+    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 80, 20, 15);
 
     /// tableau de couples de points
     vector<vector<Point2i>> vectLines;
@@ -107,11 +107,12 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
         vectPoints.emplace_back(l[0], l[1]);
         vectPoints.emplace_back(l[2], l[3]);
 
-        /// ajout du couple au tableau
-        vectLines.push_back(vectPoints) ;
+
 
         ///tracé de la ligne
-        if((int)mask.at<uchar>((int)vectPoints[0].y, (int)vectPoints[0].x) == 255 && (int)mask.at<uchar>((int)vectPoints[1].y, (int)vectPoints[1].x) == 255) {
+        if((int)mask.at<uchar>(vectPoints[0].y, vectPoints[0].x) == 255 && (int)mask.at<uchar>(vectPoints[1].y, vectPoints[1].x) == 255) {
+            /// ajout du couple au tableau
+            vectLines.push_back(vectPoints) ;
             line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
         }
     }
@@ -133,10 +134,10 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
     Mat hsv;
     cvtColor(img, hsv, CV_BGR2HSV);
 
-    ///Permet de voir la couleur du pixel 300/300
+//    ///Permet de voir la couleur du pixel 300/300
 //    circle(img, Point(300, 300), 5, Scalar(0, 0, 255));
-//    cout << "hGreen = " << (int) hsv.at<Vec3b>(300, 300)[0] << endl;
-//    cout << "sGreen = " << (int) hsv.at<Vec3b>(300, 300)[1] << endl;
+//    cout << "h = " << (int) hsv.at<Vec3b>(300, 300)[0] << endl;
+//    cout << "s = " << (int) hsv.at<Vec3b>(300, 300)[1] << endl;
 //    cout << "l = " << (int) hsv.at<Vec3b>(300, 300)[2] << endl;
 //
 //    namedWindow("3",WINDOW_AUTOSIZE);
@@ -166,7 +167,7 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
     params.minThreshold = 0;
     params.maxThreshold = 100;
     params.filterByArea = true;
-    params.minArea = 500;
+    params.minArea = 400;
     params.maxArea = 10000;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
@@ -207,6 +208,9 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
         }
     }
 
+    ///Réglage des seuils de tolérance
+    toleranceh = 12;
+    tolerances = 60;
 
     ///affichage de l'image suivant les seuils de tolérance
     inRange(hsv, Scalar(hPink - toleranceh, sPink - tolerances, 50), Scalar(hPink + toleranceh, sPink + tolerances, 255), mask);

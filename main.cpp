@@ -22,16 +22,16 @@ double m[16];
 
 int main(int argc, char** argv){
 
+    Mat currentFrame = cameraStream.getCurrentFrame();
+    double ratio = (double)currentFrame.cols / (double)currentFrame.rows;
+    int width = 1280; //largeur de la fenêtre
     EdgeDetection::colorCalibration();
 
     glutMaster = new GlutMaster();
-    int h = 0, w = 0;
-    CameraStream::getDesktopResolution(w, h);
-    window = new OpenGL(glutMaster, 4*h/3, h, 0, 0, (char*)("aMAZEd"));
+    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"));
 
     /// Detection des murs
     vector<Point2i> coordCorner;
-    Mat currentFrame = cameraStream.getCurrentFrame();
     coordCorner = EdgeDetection::getCorner(currentFrame);
     vector<vector<Point2i>> lines = EdgeDetection::linesDetection(currentFrame, coordCorner);
 
