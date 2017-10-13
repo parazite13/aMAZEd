@@ -56,6 +56,7 @@ void EdgeDetection::colorCalibration(){
             }
         }
     }
+
 }
 
 

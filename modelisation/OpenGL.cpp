@@ -174,11 +174,14 @@ void OpenGL::drawWalls() {
 
     glColor3f(1.0, 0.0, 0.0);
 
-    /// Pour chacune des lignes
-    for(const auto &wall : this->walls){
+    int k = 0;
 
-        Mat pointModelA = wall[0];
-        Mat pointModelB = wall[1];
+    /// Pour chacune des lignes
+    for(int i = 0; i < this->walls.size(); i++){
+
+        k++;
+        Mat pointModelA = walls[i][0];
+        Mat pointModelB = walls[i][1];
 
         glBegin(GL_POLYGON);
 
@@ -189,12 +192,16 @@ void OpenGL::drawWalls() {
 
         glEnd();
 
+        cout << pointModelA << " et " << pointModelB << endl;
+
     }
+
+    cout << "on est " << k << endl;
 
     glColor3f(1.0, 1.0, 1.0);
 
 }
 
 void OpenGL::setWalls(const vector<vector<Mat>> &walls) {
-    OpenGL::walls = walls;
+    this->walls = walls;
 }

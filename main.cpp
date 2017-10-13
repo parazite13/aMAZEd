@@ -33,7 +33,7 @@ int main(int argc, char** argv){
 
     glutMaster = new GlutMaster();
     window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"));
-/*
+
     /// Detection des murs
     vector<vector<Mat>> walls;
     vector<Point2i> coordCorner;
@@ -49,6 +49,8 @@ int main(int argc, char** argv){
 
         /// Pour chacune des lignes
         for(const auto &line : lines) {
+
+            wall.clear();
             
             Mat pointImageA = Mat(3, 1, CV_64FC1);
             pointImageA.at<double>(0) = line[0].x;
@@ -68,14 +70,26 @@ int main(int argc, char** argv){
             wall.push_back(pointModelA);
             wall.push_back(pointModelB);
 
-        }
+            cout << pointModelA << pointModelB << endl;
 
-        walls.push_back(wall);
+            walls.push_back(wall);
+
+        }
 
     }while(coordCorner.size() != 4);
 
+    for(const auto &wall : walls){
+        for(const auto &mat : wall){
+            cout << mat << endl;
+        }
+        cout << endl;
+    }
+
+
     /// Définition des murs
-    window->setWalls(walls);*/
+    if(!walls.empty()){
+        window->setWalls(walls);
+    }
 
     glutMaster->CallGlutMainLoop();
 
