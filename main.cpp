@@ -22,10 +22,12 @@ double m[16];
 
 int main(int argc, char** argv){
     Mat currentFrame = cameraStream.getCurrentFrame();
+    double ratio = (double)currentFrame.cols / (double)currentFrame.rows;
+    int width = 1280; //largeur de la fenêtre
     EdgeDetection::colorCalibration();
 
     glutMaster = new GlutMaster();
-    window = new OpenGL(glutMaster, currentFrame.cols, currentFrame.rows, 0, 0, (char*)("aMAZEd"));
+    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"));
 
     glutMaster->CallGlutMainLoop();
 
