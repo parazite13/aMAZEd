@@ -5,14 +5,12 @@
 using namespace cv;
 using namespace std;
 
-extern Mat textMaze;
-extern Mat textCam;
-extern double p[16];
-extern double m[16];
-
+/// Fonction appelé en boucle et définie dans le main
 void loop(int);
 
-OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title){
+OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, CameraStream * cameraStream){
+
+    this->cameraStream = cameraStream;
 
     this->width  = setWidth;
     this->height = setHeight;
@@ -20,7 +18,10 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     this->initPositionX = setInitPositionX;
     this->initPositionY = setInitPositionY;
 
-    textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
+    this->p = new double[16];
+    this->m = new double[16];
+
+    this->textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize(this->width, this->height);
@@ -35,12 +36,16 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
 
 OpenGL::~OpenGL(){
     glutDestroyWindow(windowID);
+    delete p;
+    delete m;
 }
 
 void OpenGL::CallBackDisplayFunc(){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
+
+    this->textCam = cameraStream->getCurrentFrame();
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -51,11 +56,11 @@ void OpenGL::CallBackDisplayFunc(){
     drawBackground();
 
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrixd(p);
+    glLoadMatrixd(this->p);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glLoadMatrixd(m);
+    glLoadMatrixd(this->m);
     drawAxes();
     drawMazeGround();
 
@@ -68,10 +73,10 @@ void OpenGL::CallBackDisplayFunc(){
 
 void OpenGL::CallBackReshapeFunc(int w, int h){
 
-    width = w;
-    height= h;
+    this->width = w;
+    this->height= h;
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, this->width, this->height);
     CallBackDisplayFunc();
 }
 
@@ -151,7 +156,7 @@ void OpenGL::drawAxes(){
 }
 
 void OpenGL::drawMazeGround(){
-    loadTexture(ID_TEXT_MAZE, textMaze);
+    loadTexture(ID_TEXT_MAZE, this->textMaze);
     glBegin(GL_POLYGON);
     glTexCoord2d(0, 1);glVertex3f(0.0f, 0.0f, 0.0f);
     glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, 0.0f);
@@ -161,7 +166,7 @@ void OpenGL::drawMazeGround(){
 }
 
 void OpenGL::drawBackground() {
-    loadTexture(ID_TEXT_MAZE, textCam);
+    loadTexture(ID_TEXT_MAZE, this->textCam);
     glBegin(GL_POLYGON);
     glTexCoord2d(0, 1);glVertex3f(0.0, 0.0f, -5.0f);
     glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, -5.0f);
@@ -174,14 +179,11 @@ void OpenGL::drawWalls() {
 
     glColor3f(1.0, 0.0, 0.0);
 
-    int k = 0;
-
     /// Pour chacune des lignes
-    for(int i = 0; i < this->walls.size(); i++){
+    for(auto &wall : this->walls){
 
-        k++;
-        Mat pointModelA = walls[i][0];
-        Mat pointModelB = walls[i][1];
+        Mat pointModelA = wall[0];
+        Mat pointModelB = wall[1];
 
         glBegin(GL_POLYGON);
 
@@ -200,4 +202,16 @@ void OpenGL::drawWalls() {
 
 void OpenGL::setWalls(const vector<vector<Mat>> &walls) {
     this->walls = walls;
+}
+
+void OpenGL::setProjectionMatrix(double *p) {
+    for(int i = 0; i < 16; i++){
+        this->p[i] = p[i];
+    }
+}
+
+void OpenGL::setModelviewMatrix(double *m) {
+    for(int i = 0; i < 16; i++){
+        this->m[i] = m[i];
+    }
 }

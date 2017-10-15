@@ -131,7 +131,7 @@ void Transformation::computeExtrinsicMatrix(const vector<Point2i> &edgeCoordinat
 
     solvePnP(modelPoints, imagePoints, this->K, distCoeffs, rot, trans);
 
-    /// Affichae OpenCV fonctionne uniquement en enlevant la premiere boucle d'inversion du y
+    /// Affichage OpenCV fonctionne uniquement en enlevant la premiere boucle d'inversion du y
     /*vector<Point3d> modelPoints3d;
     vector<Point2d> projectedPoints;
     for(auto p : modelPoints)
