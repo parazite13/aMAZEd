@@ -23,9 +23,9 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
-    glutInitWindowSize(width, height);
-    glutInitWindowPosition(initPositionX, initPositionY);
-    glViewport(0, 0, width, height);   // This may have to be moved to after the next line on some platforms
+    glutInitWindowSize(this->width, this->height);
+    glutInitWindowPosition(this->initPositionX, this->initPositionY);
+    glViewport(0, 0, this->width, this->height);
 
     glutMaster->CallGlutCreateWindow(title, this);
 
@@ -192,11 +192,7 @@ void OpenGL::drawWalls() {
 
         glEnd();
 
-        cout << pointModelA << " et " << pointModelB << endl;
-
     }
-
-    cout << "on est " << k << endl;
 
     glColor3f(1.0, 1.0, 1.0);
 
