@@ -68,7 +68,11 @@ public:
      *      far : distance maximale a afficher devant la caméra
      */
     Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Size size, double near, double far);
-    
+
+    Transformation();
+
+    Transformation &operator=(Transformation transformation);
+
     /** Permet de créer une matrice compatible avec openGL de modelView
      */
     void getModelviewMatrix(double matrix[]);

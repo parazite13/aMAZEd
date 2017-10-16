@@ -1,12 +1,14 @@
 #include "modelisation/OpenGL.h"
 #include "analyse/EdgeDetection.h"
 #include "modelisation/Transformation.h"
+#include "physics/AngleModel.h"
 
 using namespace cv;
 using namespace std;
 
 CameraStream *cameraStream = nullptr;
 OpenGL *window = nullptr;
+AngleModel *angleModel = nullptr;
 
 /// Prototypes des fonctions de ce fichier
 void loop(int);
@@ -39,7 +41,10 @@ int main(int argc, char** argv){
 
     destroyWindow("aMAZEd Calibration");
     glutMaster->CallGlutMainLoop();
+
     delete cameraStream;
+    delete window;
+    delete angleModel;
 
     return 0;
 }
@@ -54,8 +59,10 @@ void loop(int){
     edgeDetection.linesDetection(currentFrame, coordCorner);
 
     /// Si les 4 coins ont été détéctées
-    if(coordCorner.size() == 4){
+    if(coordCorner.size() == 4) {
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
+        angleModel->setCurrentTransformation(transformation);
+//        cout << "X=" << angleModel->getAngleX() << " Y=" << angleModel->getAngleY() << " Z=" << angleModel->getAngleZ() << endl;
         double p[16];
         double m[16];
         transformation.getProjectionMatrix(p);
@@ -63,6 +70,7 @@ void loop(int){
         window->setProjectionMatrix(p);
         window->setModelviewMatrix(m);
     }
+
 
     glutPostRedisplay();
 
@@ -128,5 +136,7 @@ void setupMaze(){
     if(!walls.empty()){
         window->setWalls(walls);
     }
+
+    angleModel = new AngleModel(transformation);
 
 }

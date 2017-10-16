@@ -8,6 +8,8 @@
 using namespace cv;
 using namespace std;
 
+Transformation::Transformation() = default;
+
 Transformation::Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Size size, double near, double far) {
 
     this->X0 = size.width / 2;
@@ -24,10 +26,10 @@ Transformation::Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Siz
 
 }
 
+
 Mat Transformation::getHomography() {
     return this->H;
 }
-
 
 void Transformation::getProjectionMatrix(double *matrix) {
 
@@ -267,4 +269,8 @@ void Transformation::computePerspMatrix() {
     this->Persp.at<double>(3, 2) = this->K.at<double>(2, 2);
     this->Persp.at<double>(3, 3) = 0.0f;
 
+}
+
+Transformation &Transformation::operator=(Transformation transformation) {
+    return *this;
 }
