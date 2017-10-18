@@ -8,11 +8,11 @@ using namespace cv;
 
 ///Réglage de la teinte et de la saturation pour le vert
 int hGreen = 0;
-int sGreen = 230;
+int sGreen = 0;
 
 ///Réglage de la teinte et de la saturation pour le mauve
 int hPink = 0;
-int sPink = 140;
+int sPink = 0;
 
 
 EdgeDetection::EdgeDetection(CameraStream *cameraStream) {
@@ -20,42 +20,77 @@ EdgeDetection::EdgeDetection(CameraStream *cameraStream) {
 }
 
 ///Fonction permettant la calibration de la couleur
-void EdgeDetection::colorCalibration(){
+Mat EdgeDetection::colorCalibration(){
     std::vector<Point2i> keypoints;
-    Mat img;
-    int minh = 50;
-    int maxh = 95;
-    ///Tant que l'on a pas 3 points, on cherche à calibrer le vert
-    while(keypoints.size() < 3){
-        ///Calibration de la teinte
-        hGreen = (hGreen-minh+7)%(maxh-minh)+minh;
-        img = this->cameraStream->getCurrentFrame();
-        keypoints = getCorner(img);
-        ///Quand on à fait une boucle sur la teinte, on baisse la saturation
-        if(hGreen == minh){
-            sGreen = sGreen-30;
-            if(sGreen <= 120){
-                sGreen = 210;
+    Mat img = this->cameraStream->getCurrentFrame();;
+    Mat imgGrey;
+
+    cvtColor(img, imgGrey, COLOR_RGB2GRAY);
+
+    namedWindow("frey",WINDOW_AUTOSIZE);
+    imshow("frey", imgGrey);
+
+    Mat mask;
+
+    auto midGrey = (int)imgGrey.at<uchar>(imgGrey.cols / 2, imgGrey.rows / 2);
+    inRange(imgGrey, midGrey-30, midGrey+30, mask);
+
+
+    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
+    Mat maskTemp = mask.clone();
+    cv::floodFill(maskTemp, cv::Point(imgGrey.cols/2, imgGrey.rows/2), CV_RGB(0, 0, 0));
+
+    maskTemp = ~maskTemp;
+    mask = maskTemp & mask;
+
+    cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
+
+
+    Mat kernel;
+    kernel = getStructuringElement(2, Size(15,15), Point(2,2));
+    dilate(mask, mask, kernel);
+    erode(mask, mask, kernel);
+
+
+    namedWindow("mask3",WINDOW_AUTOSIZE);
+    imshow("mask3", mask);
+
+    Mat hsv;
+    cvtColor(img, hsv, COLOR_RGB2HSV);
+
+
+
+    int moyGreen = 0;
+    int moyGreenSat = 0;
+    int nbGreen = 0;
+    int moyPink = 0;
+    int moyPinkSat = 0;
+    int nbPink = 0;
+    for(int i = 0; i < img.cols; i++){
+        for(int j = 0; j < img.rows; j++){
+            if((int) mask.at<uchar>(j,i) == 255){
+                if((int)hsv.at<Vec3b>(j,i)[0] < 125){
+                    moyGreen += (int)hsv.at<Vec3b>(j,i)[0];
+                    moyGreenSat += (int)hsv.at<Vec3b>(j,i)[1];
+                    nbGreen++;
+                }
+                else{
+                    moyPink += (int)hsv.at<Vec3b>(j,i)[0];
+                    moyPinkSat += (int)hsv.at<Vec3b>(j,i)[1];
+                    nbPink++;
+                }
             }
         }
     }
 
-    minh = 150;
-    maxh = 175;
-    ///Tant que l'on a pas le 4eme point, on cherche à calibrer le mauve
-    while(keypoints.size() < 4){
-        ///Calibration de la teinte
-        hPink = (hPink-minh+7)%(maxh-minh)+minh;
-        img = this->cameraStream->getCurrentFrame();
-        keypoints = getCorner(img);
-        ///Quand on à fait une boucle sur la teinte, on baisse la saturation
-        if(hPink == minh){
-            sPink = sPink-30;
-            if(sPink <= 80){
-                sPink = 140;
-            }
-        }
+    if(nbGreen != 0 || nbPink != 0){
+        hGreen = moyGreen/nbGreen;
+        sGreen = moyGreenSat/nbGreen;
+        hPink = moyPink/nbPink;
+        sPink = moyPinkSat/nbPink;
     }
+
+    return mask;
 
 }
 
@@ -128,40 +163,13 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
 
 vector<Point2i> EdgeDetection::getCorner(Mat img) {
 
-    ///Liste contenant les points des coins du plan
+    Mat mask = colorCalibration();
     std::vector<KeyPoint> keypoints;
-    ///Masque
-    Mat mask;
-
+    vector<Point2i> coordCorner;
     ///Déclaration et calcul de l'image hsv
     Mat hsv;
     cvtColor(img, hsv, CV_BGR2HSV);
 
-//    ///Permet de voir la couleur du pixel 300/300
-//    circle(img, Point(300, 300), 5, Scalar(0, 0, 255));
-//    cout << "h = " << (int) hsv.at<Vec3b>(300, 300)[0] << endl;
-//    cout << "s = " << (int) hsv.at<Vec3b>(300, 300)[1] << endl;
-//    cout << "l = " << (int) hsv.at<Vec3b>(300, 300)[2] << endl;
-//
-//    namedWindow("3",WINDOW_AUTOSIZE);
-//    imshow("3", img);
-
-
-    ///Réglage des seuils de tolérance
-    int toleranceh = 12;
-    int tolerances = 45;
-
-    ///Affichage de l'image suivant les seuils de tolérance
-    inRange(hsv, Scalar(hGreen - toleranceh, sGreen - tolerances, 50), Scalar(hGreen + toleranceh, sGreen + tolerances, 255), mask);
-
-    /// On inverse le mask
-    mask = ~mask;
-
-    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
-    Mat maskTemp = mask.clone();
-    cv::floodFill(maskTemp, cv::Point(0, 0), CV_RGB(0, 0, 0));
-    maskTemp = ~maskTemp;
-    mask = maskTemp & mask;
 
 
     ///Paramètre pour la détection des composantes connexes
@@ -179,27 +187,13 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
     cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
 
     detector->detect(mask, keypoints);
-
-
-    ///Dessine les cercles correspondant aux composantes connexes
     drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+    namedWindow("blblbl",WINDOW_AUTOSIZE);
+    imshow("blblbl", mask);
 
-    ///On affiche le premier mask qui correspond au vert
-    namedWindow("1",WINDOW_AUTOSIZE);
-    imshow("1", mask);
-
-    ///Vector qui contient les coordonnées des coins
-    vector<Point2i> coordCorner;
-
-    if(keypoints.size() == 3){
-        for(int i=0 ; i<3 ; i++ ){
-            coordCorner.push_back(keypoints[i].pt);
-        }
-    }
-
-        /// si plus de 3 composantes connexes trouvées on prends les 4 plus grosses
-    else if(keypoints.size() > 3){
-        for(int i=0 ; i<3 ; i++ ){
+    /// si plus de 3 composantes connexes trouvées on prends les 4 plus grosses
+    if(keypoints.size() > 3){
+        for(int i=0 ; i<4 ; i++ ){
             int imax = 0;
             for(int j = 1 ; j< keypoints.size() ; j++) {
                 if (keypoints[j].size > keypoints[imax].size) {
@@ -211,47 +205,139 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
         }
     }
 
-    ///Réglage des seuils de tolérance
-    toleranceh = 12;
-    tolerances = 60;
+    cout << coordCorner.size() << endl;
 
-    ///affichage de l'image suivant les seuils de tolérance
-    inRange(hsv, Scalar(hPink - toleranceh, sPink - tolerances, 50), Scalar(hPink + toleranceh, sPink + tolerances, 255), mask);
-
-    /// On inverse le mask
-    mask = ~mask;
-
-    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
-    maskTemp = mask.clone();
-    cv::floodFill(maskTemp, cv::Point(0, 0), CV_RGB(0, 0, 0));
-    maskTemp = ~maskTemp;
-    mask = maskTemp & mask;
-
-    keypoints.clear();
-    detector->detect(mask, keypoints);
-    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
-
-    namedWindow("2",WINDOW_AUTOSIZE);
-    imshow("2", mask);
-
-
-    if(keypoints.size() > 0){
-        int imax = 0;
-        for(int j = 1 ; j< keypoints.size() ; j++) {
-            if (keypoints[j].size > keypoints[imax].size) {
-                imax = j;
-            }
-        }
-        coordCorner.push_back(keypoints[imax].pt);
-        keypoints[imax].size = 0;
-    }
-
-    /// ordre des points en fonction des exigences de la modélisation
     if(coordCorner.size() == 4) {
         coordCorner = sortPoints(coordCorner, hsv);
     }
 
     return coordCorner;
+
+//
+//    ///Liste contenant les points des coins du plan
+//    std::vector<KeyPoint> keypoints;
+//    ///Masque
+//    Mat mask;
+//
+//    ///Déclaration et calcul de l'image hsv
+//    Mat hsv;
+//    cvtColor(img, hsv, CV_BGR2HSV);
+//
+////    ///Permet de voir la couleur du pixel 300/300
+////    circle(img, Point(300, 300), 5, Scalar(0, 0, 255));
+////    cout << "h = " << (int) hsv.at<Vec3b>(300, 300)[0] << endl;
+////    cout << "s = " << (int) hsv.at<Vec3b>(300, 300)[1] << endl;
+////    cout << "l = " << (int) hsv.at<Vec3b>(300, 300)[2] << endl;
+////
+////    namedWindow("3",WINDOW_AUTOSIZE);
+////    imshow("3", img);
+//
+//
+//    ///Réglage des seuils de tolérance
+//    int toleranceh = 40;
+//    int tolerances = 100;
+//
+//    ///Affichage de l'image suivant les seuils de tolérance
+//    inRange(hsv, Scalar(hGreen - toleranceh, sGreen - tolerances, 50), Scalar(hGreen + toleranceh, sGreen + tolerances, 255), mask);
+//
+//    /// On inverse le mask
+//    mask = ~mask;
+//
+//    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
+//    Mat maskTemp = mask.clone();
+//    cv::floodFill(maskTemp, cv::Point(0, 0), CV_RGB(0, 0, 0));
+//    maskTemp = ~maskTemp;
+//    mask = maskTemp & mask;
+//
+//
+//    ///Paramètre pour la détection des composantes connexes
+//    SimpleBlobDetector::Params params;
+//
+//    params.minThreshold = 0;
+//    params.maxThreshold = 100;
+//    params.filterByArea = true;
+//    params.minArea = 400;
+//    params.maxArea = 10000;
+//    params.filterByCircularity = false;
+//    params.filterByConvexity = false;
+//    params.filterByInertia = false;
+//
+//    cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
+//
+//    detector->detect(mask, keypoints);
+//
+//
+//    ///Dessine les cercles correspondant aux composantes connexes
+//    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+//
+//    ///On affiche le premier mask qui correspond au vert
+//    namedWindow("1",WINDOW_AUTOSIZE);
+//    imshow("1", mask);
+//
+//    ///Vector qui contient les coordonnées des coins
+//    vector<Point2i> coordCorner;
+//
+//    if(keypoints.size() == 3){
+//        for(int i=0 ; i<3 ; i++ ){
+//            coordCorner.push_back(keypoints[i].pt);
+//        }
+//    }
+//
+//        /// si plus de 3 composantes connexes trouvées on prends les 4 plus grosses
+//    else if(keypoints.size() > 3){
+//        for(int i=0 ; i<3 ; i++ ){
+//            int imax = 0;
+//            for(int j = 1 ; j< keypoints.size() ; j++) {
+//                if (keypoints[j].size > keypoints[imax].size) {
+//                    imax = j;
+//                }
+//            }
+//            coordCorner.push_back(keypoints[imax].pt);
+//            keypoints[imax].size = 0;
+//        }
+//    }
+//
+//    ///affichage de l'image suivant les seuils de tolérance
+//    inRange(hsv, Scalar(hPink - toleranceh, sPink - tolerances, 50), Scalar(hPink + toleranceh, sPink + tolerances, 255), mask);
+//
+//    /// On inverse le mask
+//    mask = ~mask;
+//
+//    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
+//    maskTemp = mask.clone();
+//    cv::floodFill(maskTemp, cv::Point(0, 0), CV_RGB(0, 0, 0));
+//    maskTemp = ~maskTemp;
+//    mask = maskTemp & mask;
+//
+//    keypoints.clear();
+//    detector->detect(mask, keypoints);
+//    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+//
+//    namedWindow("2",WINDOW_AUTOSIZE);
+//    imshow("2", mask);
+//
+//
+//    if(keypoints.size() > 0){
+//        int imax = 0;
+//        for(int j = 1 ; j< keypoints.size() ; j++) {
+//            if (keypoints[j].size > keypoints[imax].size) {
+//                imax = j;
+//            }
+//        }
+//        coordCorner.push_back(keypoints[imax].pt);
+//        keypoints[imax].size = 0;
+//    }
+//
+//    cout << coordCorner.size() << endl;
+//    cout << hGreen << endl;
+//    cout << hPink << endl;
+//
+//    /// ordre des points en fonction des exigences de la modélisation
+//    if(coordCorner.size() == 4) {
+//        coordCorner = sortPoints(coordCorner, hsv);
+//    }
+//
+//    return coordCorner;
 
 
 }

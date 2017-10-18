@@ -28,7 +28,7 @@ public:
 
      /** Permet de trouver la teinte et la saturation des coins du plan
      */
-    void colorCalibration();
+    cv::Mat colorCalibration();
 
     /** détecte les couleurs d'une image
      * @params
