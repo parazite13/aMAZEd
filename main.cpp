@@ -2,6 +2,7 @@
 #include "analyse/EdgeDetection.h"
 #include "modelisation/Transformation.h"
 #include "physics/AngleModel.h"
+#include "physics/Ball.h"
 
 using namespace cv;
 using namespace std;
@@ -9,6 +10,7 @@ using namespace std;
 CameraStream *cameraStream = nullptr;
 OpenGL *window = nullptr;
 AngleModel *angleModel = nullptr;
+Ball *ball = nullptr;
 
 /// Prototypes des fonctions de ce fichier
 void loop(int);
@@ -16,6 +18,7 @@ void setupMaze();
 
 int main(int argc, char** argv){
 
+    ball = new Ball(0.5, 0.5, 0.05, 0.05, 50);
     cameraStream = new CameraStream();
     namedWindow("aMAZEd Calibration");
 
@@ -35,7 +38,7 @@ int main(int argc, char** argv){
     int width = 1000; //largeur de la fenêtre
 
     auto *glutMaster = new GlutMaster();
-    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), cameraStream);
+    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), ball, cameraStream);
 
     setupMaze();
 
@@ -63,6 +66,10 @@ void loop(int){
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
         angleModel->setCurrentTransformation(transformation);
 //        cout << "X=" << angleModel->getAngleX() << " Y=" << angleModel->getAngleY() << " Z=" << angleModel->getAngleZ() << endl;
+        ball->setAx(angleModel->getAngleX()/100);
+        ball->setAy(angleModel->getAngleY()/100);
+        ball->setAz(angleModel->getAngleZ()/100);
+        ball->updatePosition();
         double p[16];
         double m[16];
         transformation.getProjectionMatrix(p);

@@ -1,6 +1,6 @@
 #include "Ball.h"
 
-Ball::Ball(float x, float y, float z, float r, GLint m) {
+Ball::Ball(double x, double y, double z, double r, GLint m) {
     this->x = x;
     this->y = y;
     this->z = z;
@@ -14,76 +14,76 @@ Ball::Ball(float x, float y, float z, float r, GLint m) {
     this->az = 0;
 }
 
-float Ball::getX() const {
+double Ball::getX() const {
     return x;
 }
 
-void Ball::setX(float x) {
+void Ball::setX(double x) {
     Ball::x = x;
 }
 
-float Ball::getY() const {
+double Ball::getY() const {
     return y;
 }
 
-void Ball::setY(float y) {
+void Ball::setY(double y) {
     Ball::y = y;
 }
 
-float Ball::getZ() const {
+double Ball::getZ() const {
     return z;
 }
 
-void Ball::setZ(float z) {
+void Ball::setZ(double z) {
     Ball::z = z;
 }
 
-float Ball::getR() const {
+double Ball::getR() const {
     return r;
 }
 
-float Ball::getAx() const {
+double Ball::getAx() const {
     return ax;
 }
-void Ball::setAx(float a) {
+void Ball::setAx(double a) {
     Ball::ax = a;
 }
 
-float Ball::getAy() const {
+double Ball::getAy() const {
     return ay;
 }
-void Ball::setAy(float a) {
+void Ball::setAy(double a) {
     Ball::ay = a;
 }
 
-float Ball::getAz() const {
+double Ball::getAz() const {
     return az;
 }
-void Ball::setAz(float a) {
+void Ball::setAz(double a) {
     Ball::az = a;
 }
 
-float Ball::getVx() const {
+double Ball::getVx() const {
     return vx;
 }
 
-void Ball::setVx(float vx) {
+void Ball::setVx(double vx) {
     Ball::vx = vx;
 }
 
-float Ball::getVy() const {
+double Ball::getVy() const {
     return vy;
 }
 
-void Ball::setVy(float vy) {
+void Ball::setVy(double vy) {
     Ball::vy = vy;
 }
 
-float Ball::getVz() const {
+double Ball::getVz() const {
     return vz;
 }
 
-void Ball::setVz(float vz) {
+void Ball::setVz(double vz) {
     Ball::vz = vz;
 }
 
@@ -94,12 +94,16 @@ GLint Ball::getM() const {
 void Ball::draw(){
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    glTranslatef(this->x, this->y, this->z);
+    glTranslated(this->x, this->y, this->z);
     glutSolidSphere(this->r, this->m, this->m);
     glPopMatrix();
 }
 
 void Ball::updatePosition() {
+    vx += ax;
+    vy += ay;
+    vz += az;
+
     x += vx;
     y += vy;
     z += vz;

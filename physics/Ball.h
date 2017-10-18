@@ -5,58 +5,58 @@
 
 class Ball  {
 private:
-    float x;    //position selon l'axe x
-    float y;    //position selon l'axe y
-    float z;    //position selon l'axe z
-    float r;    //rayon de la boule
-    float ax;   //acceleration selon l'axe x
-    float ay;   //acceleration selon l'axe y
-    float az;   //acceleration selon l'axe z
-    float vx;   //vitesse selon l'axe x
-    float vy;   //vitesse selon l'axe y
-    float vz;   //vitesse selon l'axe z
+    double x;    //position selon l'axe x
+    double y;    //position selon l'axe y
+    double z;    //position selon l'axe z
+    double r;    //rayon de la boule
+    double ax;   //acceleration selon l'axe x
+    double ay;   //acceleration selon l'axe y
+    double az;   //acceleration selon l'axe z
+    double vx;   //vitesse selon l'axe x
+    double vy;   //vitesse selon l'axe y
+    double vz;   //vitesse selon l'axe z
     GLint m;    //maillage
 
 public:
-    Ball(float x, float y, float z, float r, GLint m);
+    Ball(double x, double y, double z, double r, GLint m);
 
-    float getX() const;
+    double getX() const;
 
-    void setX(float x);
+    void setX(double x);
 
-    float getY() const;
+    double getY() const;
 
-    void setY(float y);
+    void setY(double y);
 
-    float getZ() const;
+    double getZ() const;
 
-    void setZ(float z);
+    void setZ(double z);
 
-    float getR() const;
+    double getR() const;
 
-    float getAx() const;
+    double getAx() const;
 
-    void setAx(float a);
+    void setAx(double a);
 
-    float getAy() const;
+    double getAy() const;
 
-    void setAy(float a);
+    void setAy(double a);
 
-    float getAz() const;
+    double getAz() const;
 
-    void setAz(float a);
+    void setAz(double a);
 
-    float getVx() const;
+    double getVx() const;
 
-    void setVx(float vx);
+    void setVx(double vx);
 
-    float getVy() const;
+    double getVy() const;
 
-    void setVy(float vy);
+    void setVy(double vy);
 
-    float getVz() const;
+    double getVz() const;
 
-    void setVz(float vz);
+    void setVz(double vz);
 
     GLint getM() const;
 
