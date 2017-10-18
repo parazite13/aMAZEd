@@ -5,6 +5,7 @@
 #include "../stream/CameraStream.h"
 #include "GlutWindow.h"
 #include "GlutMaster.h"
+#include "../physics/Ball.h"
 
 class OpenGL : public GlutWindow{
 
@@ -31,6 +32,7 @@ private:
 
     std::vector<std::vector<cv::Mat>> walls;
 
+    Ball *ball;
     CameraStream *cameraStream;
     cv::Mat textCam;
     cv::Mat textMaze;
@@ -46,13 +48,16 @@ public:
     void setWalls(const std::vector<std::vector<cv::Mat>> &walls);
     void setProjectionMatrix(double* p);
     void setModelviewMatrix(double *m);
+    void applicateMaterial();
+    void applicateLight();
 
-    OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, CameraStream * cameraStream);
+    OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream);
     ~OpenGL() override;
 
     void CallBackDisplayFunc() override;
     void CallBackReshapeFunc(int w, int h) override;
     void CallBackIdleFunc() override;
+
 
 };
 
