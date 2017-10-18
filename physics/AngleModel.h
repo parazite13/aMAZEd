@@ -10,8 +10,8 @@ private:
 
     const int VECT_LENGTH = 500;
 
-    Transformation* initialTransformation;
-    Transformation* currentTransformation;
+    Transformation *initialTransformation;
+    Transformation *currentTransformation;
 
     cv::Mat initialVectX;
     cv::Mat initialVectY;
@@ -29,10 +29,9 @@ private:
 
 public:
 
-    void setCurrentTransformation(Transformation &currentTransformation);
+    void setCurrentTransformation(Transformation *currentTransformation);
 
-    AngleModel(Transformation &initialTransformation);
-    AngleModel(Transformation &initialTransformation, Transformation &currentTransformation);
+    AngleModel(Transformation *transformation);
 
     double getAngleX() const;
     double getAngleY() const;

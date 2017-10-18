@@ -61,7 +61,7 @@ void loop(int){
     /// Si les 4 coins ont été détéctées
     if(coordCorner.size() == 4) {
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
-        angleModel->setCurrentTransformation(transformation);
+        angleModel->setCurrentTransformation(&transformation);
 //        cout << "X=" << angleModel->getAngleX() << " Y=" << angleModel->getAngleY() << " Z=" << angleModel->getAngleZ() << endl;
         double p[16];
         double m[16];
@@ -99,7 +99,7 @@ void setupMaze(){
     }while(coordCorner.size() != 4);
 
 
-    Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
+    Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
 
     walls.clear();
     vector<Mat> wall;
@@ -119,7 +119,7 @@ void setupMaze(){
         pointImageB.at<double>(1) = line[1].y;
         pointImageB.at<double>(2) = 1;
 
-        Mat homography = transformation.getHomography();
+        Mat homography = transformation->getHomography();
 
         /// Calcul des coordonées des murs sur le modele
         Mat pointModelA = homography * pointImageA;

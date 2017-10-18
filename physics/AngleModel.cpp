@@ -2,40 +2,12 @@
 
 using namespace cv;
 
-AngleModel::AngleModel(Transformation &initialTransformation) {
-
-    this->initialTransformation = &initialTransformation;
-    Mat homography = initialTransformation.getHomography();
-
-    /// Vect X
-    Mat vectX = Mat(3, 1, CV_64FC1);
-    vectX.at<double>(0) = VECT_LENGTH;
-    vectX.at<double>(1) = 0;
-    vectX.at<double>(2) = 0;
-    this->initialVectX = homography * vectX;
-
-    /// Vect Y
-    Mat vectY = Mat(3, 1, CV_64FC1);
-    vectY.at<double>(0) = 0;
-    vectY.at<double>(1) = VECT_LENGTH;
-    vectY.at<double>(2) = 0;
-    this->initialVectY = homography * vectY;
-
-    /// Vect Z
-    Mat vectZ = Mat(3, 1, CV_64FC1);
-    vectZ.at<double>(0) = 0;
-    vectZ.at<double>(1) = 0;
-    vectZ.at<double>(2) = VECT_LENGTH;
-    this->initialVectZ = homography * vectZ;
+AngleModel::AngleModel(Transformation *initialTransformation) {
+    this->initialTransformation = initialTransformation;
 }
 
-AngleModel::AngleModel(Transformation &initialTransformation, Transformation &currentTransformation) {
-    this->initialTransformation = &initialTransformation;
-    this->currentTransformation = &currentTransformation;
-}
-
-void AngleModel::setCurrentTransformation(Transformation &currentTransformation) {
-    this->currentTransformation = &currentTransformation;
+void AngleModel::setCurrentTransformation(Transformation *currentTransformation) {
+    this->currentTransformation = currentTransformation;
     computeAngle();
 }
 
@@ -76,31 +48,13 @@ double AngleModel::angleOriente(cv::Mat &a, cv::Mat &b) const {
 
 void AngleModel::computeAngle() {
 
-    Mat homography = currentTransformation->getHomography();
+    Vec3d initialEuler = initialTransformation->getEulerAngle();
+    Vec3d currentEuler = currentTransformation->getEulerAngle();
 
-    /// Angle X
-    Mat vectX = Mat(3, 1, CV_64FC1);
-    vectX.at<double>(0) = VECT_LENGTH;
-    vectX.at<double>(1) = 0;
-    vectX.at<double>(2) = 0;
-    Mat currentVectX = homography * vectX;
-    this->angleX = angleOriente(initialVectX, currentVectX);
+    this->angleX = initialEuler[0] - currentEuler[0];
+    this->angleY = initialEuler[1] - currentEuler[1];
+    this->angleZ = initialEuler[2] - currentEuler[2];
 
-    /// Angle Y
-    Mat vectY = Mat(3, 1, CV_64FC1);
-    vectY.at<double>(0) = 0;
-    vectY.at<double>(1) = VECT_LENGTH;
-    vectY.at<double>(2) = 0;
-    Mat currentVectY = homography * vectY;
-    this->angleY = angleOriente(initialVectY, currentVectY);
-
-    /// Angle Z
-    Mat vectZ = Mat(3, 1, CV_64FC1);
-    vectZ.at<double>(0) = 0;
-    vectZ.at<double>(1) = 0;
-    vectZ.at<double>(2) = VECT_LENGTH;
-    Mat currentVectZ = homography * vectZ;
-    this->angleZ = angleOriente(initialVectZ, currentVectZ);
 
 }
 

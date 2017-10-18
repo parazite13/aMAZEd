@@ -21,6 +21,7 @@ private:
     cv::Mat H;          /// Homography
     cv::Mat NDC;        /// NDC
     cv::Mat Persp;      /// Persp
+    cv::Mat rotMatrix;
 
     cv::Mat proj;       /// proj
     cv::Mat modelView;  /// modelview
@@ -71,7 +72,7 @@ public:
 
     Transformation();
 
-    Transformation &operator=(Transformation transformation);
+   // Transformation(const Transformation &transformation);
 
     /** Permet de créer une matrice compatible avec openGL de modelView
      */
@@ -85,6 +86,8 @@ public:
      *      La matrice d'homographie 3x3
      */
     cv::Mat getHomography();
+
+    cv::Vec3d getEulerAngle();
 };
 
 
