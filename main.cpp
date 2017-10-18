@@ -2,6 +2,7 @@
 #include "analyse/EdgeDetection.h"
 #include "modelisation/Transformation.h"
 #include "physics/AngleModel.h"
+#include "physics/Ball.h"
 
 using namespace cv;
 using namespace std;
@@ -9,6 +10,7 @@ using namespace std;
 CameraStream *cameraStream = nullptr;
 OpenGL *window = nullptr;
 AngleModel *angleModel = nullptr;
+Ball *ball = nullptr;
 
 /// Prototypes des fonctions de ce fichier
 void loop(int);
@@ -16,6 +18,7 @@ void setupMaze();
 
 int main(int argc, char** argv){
 
+    ball = new Ball(0.5, 0.5, 0.05, 0.05, 50);
     cameraStream = new CameraStream();
     namedWindow("aMAZEd Calibration");
 
@@ -32,10 +35,10 @@ int main(int argc, char** argv){
 
     Mat currentFrame = cameraStream->getCurrentFrame();
     double ratio = (double)currentFrame.cols / (double)currentFrame.rows;
-    int width = 1000; //largeur de la fenêtre
+    int width = 1000; /// Largeur de la fenêtre
 
     auto *glutMaster = new GlutMaster();
-    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), cameraStream);
+    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), ball, cameraStream);
 
     setupMaze();
 
@@ -61,8 +64,15 @@ void loop(int){
     /// Si les 4 coins ont été détéctées
     if(coordCorner.size() == 4) {
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
-        angleModel->setCurrentTransformation(transformation);
+        angleModel->setCurrentTransformation(&transformation);
 //        cout << "X=" << angleModel->getAngleX() << " Y=" << angleModel->getAngleY() << " Z=" << angleModel->getAngleZ() << endl;
+        ball->setAx(angleModel->getAngleX() / 1000);
+        ball->setAy(angleModel->getAngleY() / 1000);
+        ball->updatePosition();
+
+//        cout << "AX=" << ball->getAx() << " AY=" << ball->getAy() << " AZ=" << ball->getAz() << endl;
+//        cout << coordCorner << endl << endl;
+
         double p[16];
         double m[16];
         transformation.getProjectionMatrix(p);
@@ -86,12 +96,13 @@ void setupMaze(){
 
     vector<vector<Mat>> walls;
     vector<Point2i> coordCorner;
-    coordCorner = edgeDetection.getCorner(currentFrame);
     vector<vector<Point2i>> lines;
 
     /// Tant que les 4 coins n'ont pas été détéctées
     do {
         currentFrame = cameraStream->getCurrentFrame();
+
+        coordCorner = edgeDetection.getCorner(currentFrame);
 
         /// Detection des murs
         lines = edgeDetection.linesDetection(currentFrame, coordCorner);
@@ -99,7 +110,7 @@ void setupMaze(){
     }while(coordCorner.size() != 4);
 
 
-    Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
+    Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
 
     walls.clear();
     vector<Mat> wall;
@@ -119,7 +130,7 @@ void setupMaze(){
         pointImageB.at<double>(1) = line[1].y;
         pointImageB.at<double>(2) = 1;
 
-        Mat homography = transformation.getHomography();
+        Mat homography = transformation->getHomography();
 
         /// Calcul des coordonées des murs sur le modele
         Mat pointModelA = homography * pointImageA;
