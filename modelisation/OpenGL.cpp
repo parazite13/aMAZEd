@@ -1,7 +1,6 @@
 #include <GL/freeglut.h>
 #include <opencv2/core/core.hpp>
 #include "OpenGL.h"
-#include "../physics/Ball.h"
 
 using namespace cv;
 using namespace std;
@@ -103,15 +102,15 @@ void OpenGL::loadTexture(GLuint id, Mat img) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    glTexImage2D(GL_TEXTURE_2D,     // Type of texture
-                 0,                 // Pyramid level (for mip-mapping) - 0 is the top level
-                 GL_RGB,            // Internal colour format to convert to
-                 img.cols,          // Image width  i.e. 640 for Kinect in standard mode
-                 img.rows,          // Image height i.e. 480 for Kinect in standard mode
-                 0,                 // Border width in pixels (can either be 1 or 0)
-                 0x80E0,            // Valeur correspondante à GL_BGR
-                 GL_UNSIGNED_BYTE,  // Image data type
-                 img.data);         // The actual image data itself
+    glTexImage2D(GL_TEXTURE_2D,     /// Type of texture
+                 0,                 /// Pyramid level (for mip-mapping) - 0 is the top level
+                 GL_RGB,            /// Internal colour format to convert to
+                 img.cols,          /// Image width  i.e. 640 for Kinect in standard mode
+                 img.rows,          /// Image height i.e. 480 for Kinect in standard mode
+                 0,                 /// Border width in pixels (can either be 1 or 0)
+                 0x80E0,            /// Valeur correspondante à GL_BGR
+                 GL_UNSIGNED_BYTE,  /// Image data type
+                 img.data);         /// The actual image data itself
 
     glEnable(GL_TEXTURE_2D);
 }
@@ -175,7 +174,7 @@ void OpenGL::drawMazeGround(){
 }
 
 void OpenGL::drawBackground() {
-    loadTexture(ID_TEXT_MAZE, this->textCam);
+    loadTexture(ID_TEXT_CAM, this->textCam);
     glBegin(GL_POLYGON);
     glTexCoord2d(0, 1);glVertex3f(0.0, 0.0f, -5.0f);
     glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, -5.0f);

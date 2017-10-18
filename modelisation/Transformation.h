@@ -21,7 +21,7 @@ private:
     cv::Mat H;          /// Homography
     cv::Mat NDC;        /// NDC
     cv::Mat Persp;      /// Persp
-    cv::Mat rotMatrix;
+    cv::Mat rotMatrix;  /// Matrice 3x3 de rotation
 
     cv::Mat proj;       /// proj
     cv::Mat modelView;  /// modelview
@@ -70,9 +70,9 @@ public:
      */
     Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Size size, double near, double far);
 
+    /** Constructeur par défaut
+     */
     Transformation();
-
-   // Transformation(const Transformation &transformation);
 
     /** Permet de créer une matrice compatible avec openGL de modelView
      */
@@ -87,6 +87,11 @@ public:
      */
     cv::Mat getHomography();
 
+    /**
+     * Calcul les angles d'Euler de la rotation appliqué
+     * @return
+     *      Un vecteur contenant les 3 angles de rotation autour de x, y, z
+     */
     cv::Vec3d getEulerAngle();
 };
 

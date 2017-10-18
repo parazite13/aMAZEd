@@ -35,7 +35,7 @@ int main(int argc, char** argv){
 
     Mat currentFrame = cameraStream->getCurrentFrame();
     double ratio = (double)currentFrame.cols / (double)currentFrame.rows;
-    int width = 1000; //largeur de la fenêtre
+    int width = 1000; /// Largeur de la fenêtre
 
     auto *glutMaster = new GlutMaster();
     window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), ball, cameraStream);
@@ -66,10 +66,13 @@ void loop(int){
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
         angleModel->setCurrentTransformation(&transformation);
 //        cout << "X=" << angleModel->getAngleX() << " Y=" << angleModel->getAngleY() << " Z=" << angleModel->getAngleZ() << endl;
-        ball->setAx(angleModel->getAngleX()/100);
-        ball->setAy(angleModel->getAngleY()/100);
-        ball->setAz(angleModel->getAngleZ()/100);
+        ball->setAx(angleModel->getAngleX() / 1000);
+        ball->setAy(angleModel->getAngleY() / 1000);
         ball->updatePosition();
+
+//        cout << "AX=" << ball->getAx() << " AY=" << ball->getAy() << " AZ=" << ball->getAz() << endl;
+//        cout << coordCorner << endl << endl;
+
         double p[16];
         double m[16];
         transformation.getProjectionMatrix(p);
@@ -93,12 +96,13 @@ void setupMaze(){
 
     vector<vector<Mat>> walls;
     vector<Point2i> coordCorner;
-    coordCorner = edgeDetection.getCorner(currentFrame);
     vector<vector<Point2i>> lines;
 
     /// Tant que les 4 coins n'ont pas été détéctées
     do {
         currentFrame = cameraStream->getCurrentFrame();
+
+        coordCorner = edgeDetection.getCorner(currentFrame);
 
         /// Detection des murs
         lines = edgeDetection.linesDetection(currentFrame, coordCorner);
