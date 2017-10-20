@@ -12,14 +12,15 @@ class OpenGL : public GlutWindow{
 private:
 
     /// Hauteur des murs
-    float const WALL_HEIGHT = -0.1f;
+    float const WALL_HEIGHT = -0.15f;
 
     /// Nombre d'images par seconde
-    int const FPS = 30;
+    int const FPS = 100;
 
     /// Identifiants des textures
     GLuint const ID_TEXT_CAM = 1;
     GLuint const ID_TEXT_MAZE = 2;
+    GLuint const ID_TEXT_WALL = 3;
 
     /// Matrice de projection
     double *p;
@@ -36,6 +37,7 @@ private:
     CameraStream *cameraStream;
     cv::Mat textCam;
     cv::Mat textMaze;
+    cv::Mat textWall;
 
     void drawAxes();
     void drawMazeGround();

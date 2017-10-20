@@ -21,6 +21,7 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     this->m = new double[16];
 
     this->textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
+    this->textWall = imread("../assets/mazeWall.png"); //texture du mur du labyrinthe
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize(this->width, this->height);
@@ -41,6 +42,7 @@ OpenGL::~OpenGL(){
 
 void OpenGL::CallBackDisplayFunc(){
 
+    drawAxes();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
@@ -60,15 +62,15 @@ void OpenGL::CallBackDisplayFunc(){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glLoadMatrixd(this->m);
-    drawAxes();
+//    drawAxes();
     drawMazeGround();
 
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHTING);
     drawWalls();
 
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHTING);
     glPushMatrix();
     applicateMaterial();
     ball->draw();
@@ -165,6 +167,8 @@ void OpenGL::drawAxes(){
 
 void OpenGL::drawMazeGround(){
     loadTexture(ID_TEXT_MAZE, this->textMaze);
+
+    /// Plateau de jeu
     glBegin(GL_POLYGON);
     glTexCoord2d(0, 1);glVertex3f(0.0f, 0.0f, 0.0f);
     glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, 0.0f);
@@ -184,10 +188,10 @@ void OpenGL::drawBackground() {
 }
 
 void OpenGL::applicateMaterial() {
-    GLfloat Lemission[4] = {0.0, 0.0, 0.0, 1.0};
-    GLfloat Ldiffuse[4] = {0.057, 0.441, 0.361, 1.0};
-    GLfloat Lspecular[4] = {0.0, 0.0, 0.0, 1.0};
-    GLfloat Lshininess[1] = {50.0};
+    GLfloat Lemission[4] = {0.023125f, 0.023125f, 0.023125f, 1.0f};
+    GLfloat Ldiffuse[4] = {0.2775f, 0.2775f, 0.2775f, 1.0f};
+    GLfloat Lspecular[4] = {0.773911f, 0.773911f, 0.773911f, 1.0f};
+    GLfloat Lshininess[1] = {89.6f};
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, Lemission);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, Ldiffuse);
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, Lspecular);
@@ -197,9 +201,9 @@ void OpenGL::applicateMaterial() {
 void OpenGL::applicateLight() {
     //Light
     glEnable(GL_LIGHTING);
-    GLfloat LPosition[4] =  { 0.0f, 0.0, -3.0f, 1.0};
-    GLfloat LAmbient[4] =  { 0.4, 0.4, 0.4, 1.0};
-    GLfloat LDiffuse[4] =  {2.0, 2.0, 5.0, 1.0};
+    GLfloat LPosition[4] =  { 1.5f, 1.5f, 0.0f, 1.0};
+    GLfloat LAmbient[4] =  { 1.4, 1.4, 1.4, 1.0};
+    GLfloat LDiffuse[4] =  {2.0, 2.0, 2.0, 1.0};
     GLfloat LSpecular[4] =  {1.0, 1.0, 1.0, 1.0};
     glLightfv(GL_LIGHT0, GL_POSITION, LPosition);   // position
     glLightfv(GL_LIGHT0, GL_AMBIENT, LAmbient );    // couleur de la forme
@@ -210,7 +214,21 @@ void OpenGL::applicateLight() {
 
 void OpenGL::drawWalls() {
 
-    glColor3f(1.0, 0.0, 0.0);
+    glPushMatrix();
+    loadTexture(ID_TEXT_WALL, this->textWall);
+
+//    glEnable(GL_LIGHTING);
+//    GLfloat LPosition[4] =  { 0.0f, 1.0, -3.0f, 1.0};
+//    GLfloat LAmbient[4] =  { 10.4, 10.4, 10.4, 1.0};
+//    GLfloat LDiffuse[4] =  {2.0, 2.0, 2.0, 1.0};
+//    GLfloat LSpecular[4] =  {1.0, 1.0, 1.0, 1.0};
+//    glLightfv(GL_LIGHT0, GL_POSITION, LPosition);   // position
+//    glLightfv(GL_LIGHT0, GL_AMBIENT, LAmbient );    // couleur de la forme
+//    glLightfv(GL_LIGHT0, GL_DIFFUSE, LDiffuse);     // couleur de la lumière
+//    glLightfv(GL_LIGHT0, GL_SPECULAR, LSpecular);   // couleur du reflet
+//    glEnable(GL_LIGHT0);
+
+    glEnable(GL_DEPTH_TEST);
 
     /// Pour chacune des lignes
     for(auto &wall : this->walls){
@@ -220,17 +238,15 @@ void OpenGL::drawWalls() {
 
         glBegin(GL_POLYGON);
 
-        glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), 0);
-        glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), WALL_HEIGHT);
-        glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), WALL_HEIGHT);
-        glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), 0);
+        glTexCoord2d(0, 0); glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), 0);
+        glTexCoord2d(0, 0.3); glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), WALL_HEIGHT);
+        glTexCoord2d(1, 0.3); glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), WALL_HEIGHT);
+        glTexCoord2d(1, 0); glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), 0);
 
         glEnd();
 
     }
-
-    glColor3f(1.0, 1.0, 1.0);
-
+    glPopMatrix();
 }
 
 void OpenGL::setWalls(const vector<vector<Mat>> &walls) {
