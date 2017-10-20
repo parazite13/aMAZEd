@@ -17,7 +17,7 @@ void setupMaze();
 
 int main(int argc, char** argv){
 
-    ball = new Ball(0.5, 0.5, 0.05, 0.05, 50);
+    ball = new Ball(0.5, 0.5, -0.05, 0.05, 50);
     cameraStream = new CameraStream();
     namedWindow("aMAZEd Calibration");
 
@@ -64,12 +64,16 @@ void loop(int){
     if(coordCorner.size() == 4) {
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
         angleModel->setCurrentTransformation(&transformation);
-//        cout << "X=" << angleModel->getAngleX() << " Y=" << angleModel->getAngleY() << " Z=" << angleModel->getAngleZ() << endl;
-        ball->setAx(angleModel->getAngleX() / 1000);
-        ball->setAy(angleModel->getAngleY() / 1000);
+
+//        ball->setX(angleModel->getAngleY() * 2 + 0.5);
+//        ball->setY(-angleModel->getAngleX() * 2 + 0.5);
+
+        ball->setAx(angleModel->getAngleY() / 5);
+        ball->setAy(-angleModel->getAngleX() / 5);
+
         ball->updatePosition();
 
-//        cout << "AX=" << ball->getAx() << " AY=" << ball->getAy() << " AZ=" << ball->getAz() << endl;
+        cout << "VX=" << ball->getVx() << " VY=" << ball->getVy() << " VZ=" << ball->getVz() << endl;
 //        cout << coordCorner << endl << endl;
 
         double p[16];

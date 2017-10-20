@@ -15,7 +15,7 @@ private:
     float const WALL_HEIGHT = -0.15f;
 
     /// Nombre d'images par seconde
-    int const MAX_FPS = 100;
+    int const MAX_FPS = 1000;
 
     /// Identifiants des textures
     GLuint const ID_TEXT_CAM = 1;
