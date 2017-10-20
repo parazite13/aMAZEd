@@ -102,9 +102,10 @@ void Ball::draw(){
 void Ball::updatePosition() {
     vx += ax;
     vy += ay;
-    vz += az;
 
     x += vx;
     y += vy;
-    z += vz;
+
+    if(x > 2 || x < -2) x = 0.5;
+    if(y > 2 || y < -2) y = 0.5;
 }
