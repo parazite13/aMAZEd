@@ -1,9 +1,9 @@
 #include "Ball.h"
 
-Ball::Ball(double x, double y, double z, double r, GLint m) {
+Ball::Ball(double x, double y, double r, GLint m) {
     this->x = x;
     this->y = y;
-    this->z = z;
+    this->z = -r;
     this->r = r;
     this->m = m;
     this->vx = 0;
