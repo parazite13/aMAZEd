@@ -9,7 +9,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(aMAZEd main.cpp stream/CameraStream.cpp stream/CameraStream.h analyse/EdgeDetection.cpp analyse/EdgeDetection.h modelisation/Transformation.cpp modelisation/Transformation.h modelisation/OpenGL.cpp modelisation/OpenGL.h)
+add_executable(aMAZEd main.cpp stream/CameraStream.cpp stream/CameraStream.h analyse/EdgeDetection.cpp analyse/EdgeDetection.h
+        modelisation/Transformation.cpp modelisation/Transformation.h modelisation/OpenGL.cpp modelisation/OpenGL.h
+        modelisation/GlutMaster.cpp modelisation/GlutMaster.h modelisation/GlutWindow.cpp modelisation/GlutWindow.h
+        physics/Ball.cpp physics/Ball.h physics/AngleModel.cpp physics/AngleModel.h)
 
 # add OpenCV libs
 set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs opencv_videoio opencv_calib3d)

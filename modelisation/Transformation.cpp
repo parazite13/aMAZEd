@@ -8,7 +8,9 @@
 using namespace cv;
 using namespace std;
 
-Transformation::Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Size size, double near, double far) {
+Transformation::Transformation() = default;
+
+Transformation::Transformation(std::vector<cv::Point2i> &edgeCoordinate, cv::Size size, double near, double far) {
 
     this->X0 = size.width / 2;
     this->Y0 = size.height / 2;
@@ -17,6 +19,8 @@ Transformation::Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Siz
     this->N = near;
     this->F = far;
 
+    this->rotMatrix = Mat(3, 3, CV_64FC1);
+
     computeHomographyMatrix(edgeCoordinate);
     computeIntrinsicMatrix();
     computeModelviewMatrix(edgeCoordinate);
@@ -24,29 +28,9 @@ Transformation::Transformation(std::vector<cv::Point2d> &edgeCoordinate, cv::Siz
 
 }
 
-void Transformation::getHomography(double *matrix) {
-
-    matrix[0] = this->H.at<double>(0, 0);
-    matrix[1] = this->H.at<double>(1, 0);
-    matrix[2] = 0.0f;
-    matrix[3] = this->H.at<double>(2, 0);
-
-    matrix[4] = this->H.at<double>(0, 1);
-    matrix[5] = this->H.at<double>(1, 1);
-    matrix[6] = 0.0f;
-    matrix[7] = this->H.at<double>(2, 1);
-
-    matrix[8] = 0.0f;
-    matrix[9] = 0.0f;
-    matrix[10] = 1.0f;
-    matrix[11] = 0.0f;
-
-    matrix[12] = this->H.at<double>(0, 2);
-    matrix[13] = this->H.at<double>(1, 2);
-    matrix[14] = 0.0f;
-    matrix[15] = this->H.at<double>(2, 2);
+Mat Transformation::getHomography() {
+    return this->H;
 }
-
 
 void Transformation::getProjectionMatrix(double *matrix) {
 
@@ -96,13 +80,11 @@ void Transformation::getModelviewMatrix(double *matrix) {
 
 }
 
-void Transformation::computeHomographyMatrix(const vector<Point2d> &edgeCoordinate) {
-
-    this->proj = Mat(4, 4, CV_64FC1);
+void Transformation::computeHomographyMatrix(const vector<Point2i> &edgeCoordinate) {
 
     vector<Point2f> imagePoints;
     for(const auto &i : edgeCoordinate){
-        imagePoints.emplace_back(i.x, this->size.height - i.y);
+        imagePoints.emplace_back(i.x, i.y);
     }
 
     vector<Point2d> modelPoints;
@@ -111,7 +93,7 @@ void Transformation::computeHomographyMatrix(const vector<Point2d> &edgeCoordina
     modelPoints.emplace_back(1.0, 1.0);
     modelPoints.emplace_back(1.0, 0.0);
 
-    this->H = findHomography(modelPoints, imagePoints, RANSAC);
+    this->H = findHomography(imagePoints, modelPoints);
 }
 
 void Transformation::computeIntrinsicMatrix() {
@@ -132,7 +114,7 @@ void Transformation::computeIntrinsicMatrix() {
 
 }
 
-void Transformation::computeExtrinsicMatrix(const vector<Point2d> &edgeCoordinate) {
+void Transformation::computeExtrinsicMatrix(const vector<Point2i> &edgeCoordinate) {
 
     vector<Point2f> imagePoints;
     for(const auto &i : edgeCoordinate){
@@ -152,7 +134,7 @@ void Transformation::computeExtrinsicMatrix(const vector<Point2d> &edgeCoordinat
 
     solvePnP(modelPoints, imagePoints, this->K, distCoeffs, rot, trans);
 
-    /// Affichae OpenCV fonctionne uniquement en enlevant la premiere boucle d'inversion du y
+    /// Affichage OpenCV fonctionne uniquement en enlevant la premiere boucle d'inversion du y
     /*vector<Point3d> modelPoints3d;
     vector<Point2d> projectedPoints;
     for(auto p : modelPoints)
@@ -171,28 +153,23 @@ void Transformation::computeExtrinsicMatrix(const vector<Point2d> &edgeCoordinat
     cv::imshow("ReVA 2017", currentFrame);
 */
 
-    Mat rotRodrigues;
-    Rodrigues(rot, rotRodrigues);
-
-    cout << "ROT" << endl << rotRodrigues << endl;
-    cout << "TRANS" << endl << trans << endl;
-
+    Rodrigues(rot, this->rotMatrix);
 
     this->P = Mat(3, 4, CV_64FC1);
 
-    this->P.at<double>(0, 0) = rotRodrigues.at<double>(0, 0);
-    this->P.at<double>(0, 1) = rotRodrigues.at<double>(0, 1);
-    this->P.at<double>(0, 2) = rotRodrigues.at<double>(0, 2);
+    this->P.at<double>(0, 0) = this->rotMatrix.at<double>(0, 0);
+    this->P.at<double>(0, 1) = this->rotMatrix.at<double>(0, 1);
+    this->P.at<double>(0, 2) = this->rotMatrix.at<double>(0, 2);
     this->P.at<double>(0, 3) = trans.at<double>(0);
 
-    this->P.at<double>(1, 0) = rotRodrigues.at<double>(1, 0);
-    this->P.at<double>(1, 1) = rotRodrigues.at<double>(1, 1);
-    this->P.at<double>(1, 2) = rotRodrigues.at<double>(1, 2);
+    this->P.at<double>(1, 0) = this->rotMatrix.at<double>(1, 0);
+    this->P.at<double>(1, 1) = this->rotMatrix.at<double>(1, 1);
+    this->P.at<double>(1, 2) = this->rotMatrix.at<double>(1, 2);
     this->P.at<double>(1, 3) = trans.at<double>(1);
 
-    this->P.at<double>(2, 0) = rotRodrigues.at<double>(2, 0);
-    this->P.at<double>(2, 1) = rotRodrigues.at<double>(2, 1);
-    this->P.at<double>(2, 2) = rotRodrigues.at<double>(2, 2);
+    this->P.at<double>(2, 0) = this->rotMatrix.at<double>(2, 0);
+    this->P.at<double>(2, 1) = this->rotMatrix.at<double>(2, 1);
+    this->P.at<double>(2, 2) = this->rotMatrix.at<double>(2, 2);
     this->P.at<double>(2, 3) = trans.at<double>(2);
 
 }
@@ -205,7 +182,7 @@ void Transformation::computeProjMatrix() {
     this->proj = this->NDC *this->Persp;
 }
 
-void Transformation::computeModelviewMatrix(const vector<Point2d> &edgeCoordinate) {
+void Transformation::computeModelviewMatrix(const vector<Point2i> &edgeCoordinate) {
 
     this->modelView = Mat(4, 4, CV_64FC1);
 
@@ -291,5 +268,26 @@ void Transformation::computePerspMatrix() {
     this->Persp.at<double>(3, 1) = 0.0f;
     this->Persp.at<double>(3, 2) = this->K.at<double>(2, 2);
     this->Persp.at<double>(3, 3) = 0.0f;
+
+}
+
+Vec3d Transformation::getEulerAngle() {
+
+    double sy = sqrt(this->rotMatrix.at<double>(0,0) * this->rotMatrix.at<double>(0,0) +  this->rotMatrix.at<double>(1,0) * this->rotMatrix.at<double>(1,0) );
+
+    bool singular = sy < 1e-6;
+
+    double x, y, z;
+    if (!singular) {
+        x = atan2(this->rotMatrix.at<double>(2,1) , this->rotMatrix.at<double>(2,2));
+        y = atan2(-this->rotMatrix.at<double>(2,0), sy);
+        z = atan2(this->rotMatrix.at<double>(1,0), this->rotMatrix.at<double>(0,0));
+    } else {
+        x = atan2(-this->rotMatrix.at<double>(1,2), this->rotMatrix.at<double>(1,1));
+        y = atan2(-this->rotMatrix.at<double>(2,0), sy);
+        z = 0;
+    }
+
+    return Vec3d(x, y, z);
 
 }

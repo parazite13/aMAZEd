@@ -1,15 +1,124 @@
 #include <iostream>
 #include "EdgeDetection.h"
 #include "opencv2/opencv.hpp"
+#include "../stream/CameraStream.h"
 
 using namespace std;
 using namespace cv;
 
+///Réglage de la teinte et de la saturation pour le vert
+//int hGreen = 0;
+//int sGreen = 0;
 
-vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> coordCorner){
+int StartingPointX = 0 ;
+int StartingPointY = 0;
+///Réglage de la teinte et de la saturation pour le mauve
+int hPink = 0;
+int sPink = 0;
+
+
+EdgeDetection::EdgeDetection(CameraStream *cameraStream) {
+    this->cameraStream = cameraStream;
+}
+
+///Fonction permettant la calibration de la couleur
+Mat EdgeDetection::colorCalibration(){
+    ///Initialisation des varaibles
+    std::vector<Point2i> keypoints;
+    Mat img = this->cameraStream->getCurrentFrame();;
+    Mat imgGrey;
+
+    cvtColor(img, imgGrey, COLOR_RGB2GRAY);
+    if(StartingPointX == 0 && StartingPointY == 0){
+        StartingPointX = imgGrey.cols / 2 ;
+        StartingPointY = imgGrey.rows / 2 ;
+    }
+//    namedWindow("frey",WINDOW_AUTOSIZE);
+//    imshow("frey", imgGrey);
+
+    ///Création d'un mask permetant de sélectionner uniquement les 4 coins
+    Mat mask;
+
+    ///On récupère le niveau de gris du pixel du mileu (à changer)
+    auto midGrey = (int)imgGrey.at<uchar>(StartingPointY, StartingPointX);
+    ///On créé le mask en fonction du niveau de gris précédent
+    inRange(imgGrey, midGrey-40, midGrey+40, mask);
+
+//    namedWindow("mask2b",WINDOW_AUTOSIZE);
+//    imshow("mask2b", mask);
+
+
+    ///On manipule le mask afin de ne récupérer que les 4 coins
+    Mat maskTemp = mask.clone();
+    cv::floodFill(maskTemp, cv::Point(imgGrey.cols/2, imgGrey.rows/2), CV_RGB(0, 0, 0));
+    ///Inversion du mask
+    maskTemp = ~maskTemp;
+    mask = maskTemp & mask;
+    cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
+//    namedWindow("mask2bv",WINDOW_AUTOSIZE);
+//    imshow("mask2bv", mask);
+    ///On enlève les parasites
+    Mat kernel;
+    kernel = getStructuringElement(2, Size(15,15), Point(2,2));
+    dilate(mask, mask, kernel);
+    erode(mask, mask, kernel);
+
+    ///Affichage du mask
+    namedWindow("mask3",WINDOW_AUTOSIZE);
+    imshow("mask3", mask);
+
+    ///Récupération d'une image hsv
+    Mat hsv;
+    cvtColor(img, hsv, COLOR_RGB2HSV);
+
+//    ///Calibration de la couleur verte et de la couleur rose
+//    ///Initialisation des varible
+////    int moyGreen = 0;
+////    int moyGreenSat = 0;
+//    int nbGreen = 0;
+//    int moyPink = 0;
+//    int moyPinkSat = 0;
+//    int nbPink = 0;
+//    ///On parcourt l'image
+//    for(int i = 0; i < img.cols; i++){
+//        for(int j = 0; j < img.rows; j++){
+//            ///Si le pixel est un des 4 coins
+//            if((int) mask.at<uchar>(j,i) == 255){
+//                ///S'il est vert
+//                if((int)hsv.at<Vec3b>(j,i)[0] < 125){
+////                    moyGreen += (int)hsv.at<Vec3b>(j,i)[0];
+////                    moyGreenSat += (int)hsv.at<Vec3b>(j,i)[1];
+//                      nbGreen++;
+//                }
+//                ///S'il est rose
+//                else{
+//                    moyPink += (int)hsv.at<Vec3b>(j,i)[0];
+//                    moyPinkSat += (int)hsv.at<Vec3b>(j,i)[1];
+//                    nbPink++;
+//                }
+//            }
+//        }
+//    }
+//
+//    ///Pour ne pas diviser par 0
+//    if(nbGreen != 0 && nbPink != 0){
+//      //  hGreen = moyGreen/nbGreen;
+//       // sGreen = moyGreenSat/nbGreen;
+//        hPink = moyPink/nbPink;
+//        sPink = moyPinkSat/nbPink;
+//    }
+
+    ///On retourne le mask
+    return mask;
+
+}
+
+
+
+vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> coordCorner){
     /// détection des contours avec Canny
     Mat imgCanny;
-    Canny(img, imgCanny, 100, 200, 3);
+    Canny(img, imgCanny, 100, 300, 3);
 
     /// detection des lignes dans le vect lines
 
@@ -24,10 +133,10 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
     /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
 
-    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 10, 20, 5);
+    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 80, 20, 15);
 
     /// tableau de couples de points
-    vector<vector<Point2f>> vectLines;
+    vector<vector<Point2i>> vectLines;
 
     ///Initialisation du mask
     Mat mask = Mat::zeros(img.size(), CV_8UC1);
@@ -49,92 +158,59 @@ vector<vector<Point2f>> EdgeDetection::linesDetection(Mat img, vector<Point2d> c
         fillPoly(mask, ppt, npt, 1, Scalar(255, 255, 255), 8);
     }
 
-
-
     for(Vec4i l : lines){
 
         /// couple de points
-        vector<Point2f> vectPoints ;
+        vector<Point2i> vectPoints ;
         vectPoints.emplace_back(l[0], l[1]);
         vectPoints.emplace_back(l[2], l[3]);
 
-        /// ajout du couple au tableau
-        vectLines.push_back(vectPoints) ;
+
 
         ///tracé de la ligne
-        if((int)mask.at<uchar>((int)vectPoints[0].y, (int)vectPoints[0].x) == 255 && (int)mask.at<uchar>((int)vectPoints[1].y, (int)vectPoints[1].x) == 255) {
+        if((int)mask.at<uchar>(vectPoints[0].y, vectPoints[0].x) == 255 && (int)mask.at<uchar>(vectPoints[1].y, vectPoints[1].x) == 255) {
+            /// ajout du couple au tableau
+            vectLines.push_back(vectPoints) ;
             line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
         }
     }
 
-    namedWindow("2",WINDOW_AUTOSIZE);
-    imshow("2", img);
 
     return(vectLines);
 }
 
 
+vector<Point2i> EdgeDetection::getCorner(Mat img) {
 
-vector<Point2d> EdgeDetection::getCorner(Mat img) {
-
-    ///déclaration et calcul de l'image hsv
+    Mat mask = colorCalibration();
+    std::vector<KeyPoint> keypoints;
+    vector<Point2i> coordCorner;
+    ///Déclaration et calcul de l'image hsv
     Mat hsv;
     cvtColor(img, hsv, CV_BGR2HSV);
 
-    circle(img, Point(300,300), 5, Scalar(0,0,255));
-    cout << (int)hsv.at<Vec3b>(300, 300)[0] << endl;
-    cout << (int)hsv.at<Vec3b>(300, 300)[1] << endl;
 
-    ///réglage des seuils de tolérance
-    int h = 160;
-    int s = 140;
 
-    int toleranceh = 30;
-    int tolerances = 40;
-
-    Mat mask;
-    ///affichage de l'image suivant les seuils de tolérance
-    inRange(hsv, Scalar(h-toleranceh, s-tolerances, 0), Scalar(h+toleranceh, s+tolerances, 255), mask);
-    Mat kernel;
-    kernel = getStructuringElement(2, Size(5,5), Point(2,2));
-    erode(mask, mask, kernel);
-    dilate(mask, mask, kernel);
-    mask = ~mask;
-
-    ///paramètre pour la détection des composantes connexes
+    ///Paramètre pour la détection des composantes connexes
     SimpleBlobDetector::Params params;
 
     params.minThreshold = 0;
     params.maxThreshold = 100;
     params.filterByArea = true;
-    params.minArea = 500;
+    params.minArea = 400;
     params.maxArea = 10000;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
     params.filterByInertia = false;
 
     cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
-    std::vector<KeyPoint> keypoints;
-    detector->detect( mask, keypoints );
 
-    ///dessine les cercles correspondant aux composantes connexes
+    detector->detect(mask, keypoints);
     drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 
-    namedWindow("1",WINDOW_AUTOSIZE);
-    imshow("1", mask);
 
-    ///vector qui contient les coordonnées des coins
-    vector<Point2d> coordCorner;
-
-    if(keypoints.size() == 4){
-        for(int i=0 ; i<4 ; i++ ){
-            coordCorner.push_back(keypoints[i].pt);
-        }
-        /// ordre des points en fonction des exigences de la modélisation
-        coordCorner = sortPoints(coordCorner);
-    }
-        /// si plus de 4 composantes connexes trouvées on prends les 4 plus grosses
-    else if(keypoints.size() > 4){
+    /// si plus de 3 composantes connexes trouvées on prends les 4 plus grosses
+    if(keypoints.size() > 3){
         for(int i=0 ; i<4 ; i++ ){
             int imax = 0;
             for(int j = 1 ; j< keypoints.size() ; j++) {
@@ -145,19 +221,152 @@ vector<Point2d> EdgeDetection::getCorner(Mat img) {
             coordCorner.push_back(keypoints[imax].pt);
             keypoints[imax].size = 0;
         }
-        coordCorner = sortPoints(coordCorner);
     }
+
+
+    if(coordCorner.size() == 4) {
+        coordCorner = sortPoints(coordCorner, hsv);
+        StartingPointX = (coordCorner[0].x + coordCorner[1].x)/2 ;
+        StartingPointY = (coordCorner[0].y + coordCorner[1].y)/2 ;
+    }
+
     return coordCorner;
 
-}
+//
+//    ///Liste contenant les points des coins du plan
+//    std::vector<KeyPoint> keypoints;
+//    ///Masque
+//    Mat mask;
+//
+//    ///Déclaration et calcul de l'image hsv
+//    Mat hsv;
+//    cvtColor(img, hsv, CV_BGR2HSV);
+//
+////    ///Permet de voir la couleur du pixel 300/300
+////    circle(img, Point(300, 300), 5, Scalar(0, 0, 255));
+////    cout << "h = " << (int) hsv.at<Vec3b>(300, 300)[0] << endl;
+////    cout << "s = " << (int) hsv.at<Vec3b>(300, 300)[1] << endl;
+////    cout << "l = " << (int) hsv.at<Vec3b>(300, 300)[2] << endl;
+////
+////    namedWindow("3",WINDOW_AUTOSIZE);
+////    imshow("3", img);
+//
+//
+//    ///Réglage des seuils de tolérance
+//    int toleranceh = 40;
+//    int tolerances = 100;
+//
+//    ///Affichage de l'image suivant les seuils de tolérance
+//    inRange(hsv, Scalar(hGreen - toleranceh, sGreen - tolerances, 50), Scalar(hGreen + toleranceh, sGreen + tolerances, 255), mask);
+//
+//    /// On inverse le mask
+//    mask = ~mask;
+//
+//    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
+//    Mat maskTemp = mask.clone();
+//    cv::floodFill(maskTemp, cv::Point(0, 0), CV_RGB(0, 0, 0));
+//    maskTemp = ~maskTemp;
+//    mask = maskTemp & mask;
+//
+//
+//    ///Paramètre pour la détection des composantes connexes
+//    SimpleBlobDetector::Params params;
+//
+//    params.minThreshold = 0;
+//    params.maxThreshold = 100;
+//    params.filterByArea = true;
+//    params.minArea = 400;
+//    params.maxArea = 10000;
+//    params.filterByCircularity = false;
+//    params.filterByConvexity = false;
+//    params.filterByInertia = false;
+//
+//    cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
+//
+//    detector->detect(mask, keypoints);
+//
+//
+//    ///Dessine les cercles correspondant aux composantes connexes
+//    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+//
+//    ///On affiche le premier mask qui correspond au vert
+//    namedWindow("1",WINDOW_AUTOSIZE);
+//    imshow("1", mask);
+//
+//    ///Vector qui contient les coordonnées des coins
+//    vector<Point2i> coordCorner;
+//
+//    if(keypoints.size() == 3){
+//        for(int i=0 ; i<3 ; i++ ){
+//            coordCorner.push_back(keypoints[i].pt);
+//        }
+//    }
+//
+//        /// si plus de 3 composantes connexes trouvées on prends les 4 plus grosses
+//    else if(keypoints.size() > 3){
+//        for(int i=0 ; i<3 ; i++ ){
+//            int imax = 0;
+//            for(int j = 1 ; j< keypoints.size() ; j++) {
+//                if (keypoints[j].size > keypoints[imax].size) {
+//                    imax = j;
+//                }
+//            }
+//            coordCorner.push_back(keypoints[imax].pt);
+//            keypoints[imax].size = 0;
+//        }
+//    }
+//
+//    ///affichage de l'image suivant les seuils de tolérance
+//    inRange(hsv, Scalar(hPink - toleranceh, sPink - tolerances, 50), Scalar(hPink + toleranceh, sPink + tolerances, 255), mask);
+//
+//    /// On inverse le mask
+//    mask = ~mask;
+//
+//    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
+//    maskTemp = mask.clone();
+//    cv::floodFill(maskTemp, cv::Point(0, 0), CV_RGB(0, 0, 0));
+//    maskTemp = ~maskTemp;
+//    mask = maskTemp & mask;
+//
+//    keypoints.clear();
+//    detector->detect(mask, keypoints);
+//    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+//
+//    namedWindow("2",WINDOW_AUTOSIZE);
+//    imshow("2", mask);
+//
+//
+//    if(keypoints.size() > 0){
+//        int imax = 0;
+//        for(int j = 1 ; j< keypoints.size() ; j++) {
+//            if (keypoints[j].size > keypoints[imax].size) {
+//                imax = j;
+//            }
+//        }
+//        coordCorner.push_back(keypoints[imax].pt);
+//        keypoints[imax].size = 0;
+//    }
+//
+//    cout << coordCorner.size() << endl;
+//    cout << hGreen << endl;
+//    cout << hPink << endl;
+//
+//    /// ordre des points en fonction des exigences de la modélisation
+//    if(coordCorner.size() == 4) {
+//        coordCorner = sortPoints(coordCorner, hsv);
+//    }
+//
+//    return coordCorner;
 
+
+}
 
 /// fonction utilisée pour trier les points
 bool sortByY(Point p1, Point p2){
     return p1.y>p2.y ;
 }
 
-vector<Point2d> EdgeDetection::sortPoints(vector<Point2d> coord){
+vector<Point2i> EdgeDetection::sortPoints(vector<Point2i> coord, Mat imgHSV){
     /// tri du y le plus grand au plus petit
     sort(coord.begin(), coord.end(), sortByY);
     /// comparaison des deux du bas et des deux du haut
@@ -166,6 +375,20 @@ vector<Point2d> EdgeDetection::sortPoints(vector<Point2d> coord){
     ///réarangement qui marche =)
     swap(coord[1],coord[2]);
     swap(coord[2],coord[3]);
+
+    // hGreen+-12  sGreen+-45
+    int compt =0;// sécurité
+    while( !((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] > 125
+            //(int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] > (hPink - 12)
+          //  && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] < (hPink + 12))
+          //  && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[1] > (sPink - 45))
+          //  && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[1] < (sPink + 45))
+        ) && (compt < 4)){ //tant que le point unique n'est pas en premier on rotato
+
+        std::rotate(coord.begin(),coord.begin()+1,coord.end());
+        compt++;
+    }
+    cout << compt << endl ;
 
     return coord;
 }

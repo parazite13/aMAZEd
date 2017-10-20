@@ -3,28 +3,64 @@
 
 #include <GL/freeglut.h>
 #include "../stream/CameraStream.h"
+#include "GlutWindow.h"
+#include "GlutMaster.h"
+#include "../physics/Ball.h"
 
-class OpenGL {
-
-public:
-
-    /// Nombre d'images par seconde
-    static int const FPS = 30;
-
-    /// Identifiants des textures
-    static GLuint const ID_TEXT_CAM = 1;
-    static GLuint const ID_TEXT_MAZE = 2;
-
-    static void init(int argc, char** argv);
+class OpenGL : public GlutWindow{
 
 private:
 
-    static void drawAxes();
-    static void drawMazeGround();
-    static void drawBackground();
-    static void loadTexture(GLuint id, cv::Mat img);
-    static void display();
-    static void resize(int width, int height);
+    /// Hauteur des murs
+    float const WALL_HEIGHT = -0.15f;
+
+    /// Nombre d'images par seconde
+    int const MAX_FPS = 1000;
+
+    /// Identifiants des textures
+    GLuint const ID_TEXT_CAM = 1;
+    GLuint const ID_TEXT_MAZE = 2;
+    GLuint const ID_TEXT_WALL = 3;
+
+    /// Matrice de projection
+    double *p;
+
+    /// Matrice de Modelview
+    double *m;
+
+    int height, width;
+    int initPositionX, initPositionY;
+
+    std::vector<std::vector<cv::Mat>> walls;
+
+    Ball *ball;
+    CameraStream *cameraStream;
+    cv::Mat textCam;
+    cv::Mat textMaze;
+    cv::Mat textWall;
+
+    void drawAxes();
+    void drawMazeGround();
+    void drawBackground();
+    void drawWalls();
+    void loadTexture(GLuint id, cv::Mat img);
+
+public:
+
+    void setWalls(const std::vector<std::vector<cv::Mat>> &walls);
+    void setProjectionMatrix(double* p);
+    void setModelviewMatrix(double *m);
+    void applicateMaterial();
+    void applicateLight();
+
+    OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream);
+    ~OpenGL() override;
+
+    void CallBackDisplayFunc() override;
+    void CallBackReshapeFunc(int w, int h) override;
+    void CallBackIdleFunc() override;
+
+
 };
 
 
