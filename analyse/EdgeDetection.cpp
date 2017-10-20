@@ -21,59 +21,70 @@ EdgeDetection::EdgeDetection(CameraStream *cameraStream) {
 
 ///Fonction permettant la calibration de la couleur
 Mat EdgeDetection::colorCalibration(){
+    ///Initialisation des varaibles
     std::vector<Point2i> keypoints;
     Mat img = this->cameraStream->getCurrentFrame();;
     Mat imgGrey;
 
     cvtColor(img, imgGrey, COLOR_RGB2GRAY);
 
-    namedWindow("frey",WINDOW_AUTOSIZE);
-    imshow("frey", imgGrey);
+//    namedWindow("frey",WINDOW_AUTOSIZE);
+//    imshow("frey", imgGrey);
 
+    ///Création d'un mask permetant de sélectionner uniquement les 4 coins
     Mat mask;
 
+    ///On récupère le niveau de gris du pixel du mileu (à changer)
     auto midGrey = (int)imgGrey.at<uchar>(imgGrey.cols / 2, imgGrey.rows / 2);
-    inRange(imgGrey, midGrey-30, midGrey+30, mask);
+    ///On créé le mask en fonction du niveau de gris précédent
+    inRange(imgGrey, midGrey-40, midGrey+40, mask);
+
+//    namedWindow("mask2",WINDOW_AUTOSIZE);
+//    imshow("mask2", mask);
 
 
-    ///On créé un masque temporraire permettant d'enlever les trous à l'interrieure d'une composante connexe
+    ///On manipule le mask afin de ne récupérer que les 4 coins
     Mat maskTemp = mask.clone();
     cv::floodFill(maskTemp, cv::Point(imgGrey.cols/2, imgGrey.rows/2), CV_RGB(0, 0, 0));
-
+    ///Inversion du mask
     maskTemp = ~maskTemp;
     mask = maskTemp & mask;
-
     cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
 
-
+    ///On enlève les parasites
     Mat kernel;
     kernel = getStructuringElement(2, Size(15,15), Point(2,2));
     dilate(mask, mask, kernel);
     erode(mask, mask, kernel);
 
-
+    ///Affichage du mask
     namedWindow("mask3",WINDOW_AUTOSIZE);
     imshow("mask3", mask);
 
+    ///Récupération d'une image hsv
     Mat hsv;
     cvtColor(img, hsv, COLOR_RGB2HSV);
 
-
-
+    ///Calibration de la couleur verte et de la couleur rose
+    ///Initialisation des varible
     int moyGreen = 0;
     int moyGreenSat = 0;
     int nbGreen = 0;
     int moyPink = 0;
     int moyPinkSat = 0;
     int nbPink = 0;
+    ///On parcourt l'image
     for(int i = 0; i < img.cols; i++){
         for(int j = 0; j < img.rows; j++){
+            ///Si le pixel est un des 4 coins
             if((int) mask.at<uchar>(j,i) == 255){
+                ///S'il est vert
                 if((int)hsv.at<Vec3b>(j,i)[0] < 125){
                     moyGreen += (int)hsv.at<Vec3b>(j,i)[0];
                     moyGreenSat += (int)hsv.at<Vec3b>(j,i)[1];
                     nbGreen++;
                 }
+                ///S'il est rose
                 else{
                     moyPink += (int)hsv.at<Vec3b>(j,i)[0];
                     moyPinkSat += (int)hsv.at<Vec3b>(j,i)[1];
@@ -83,6 +94,7 @@ Mat EdgeDetection::colorCalibration(){
         }
     }
 
+    ///Pour ne pas diviser par 0
     if(nbGreen != 0 || nbPink != 0){
         hGreen = moyGreen/nbGreen;
         sGreen = moyGreenSat/nbGreen;
@@ -90,6 +102,7 @@ Mat EdgeDetection::colorCalibration(){
         sPink = moyPinkSat/nbPink;
     }
 
+    ///On retourne le mask
     return mask;
 
 }
@@ -188,8 +201,7 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
 
     detector->detect(mask, keypoints);
     drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
-    namedWindow("blblbl",WINDOW_AUTOSIZE);
-    imshow("blblbl", mask);
+
 
     /// si plus de 3 composantes connexes trouvées on prends les 4 plus grosses
     if(keypoints.size() > 3){
