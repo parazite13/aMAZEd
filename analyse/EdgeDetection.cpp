@@ -7,9 +7,11 @@ using namespace std;
 using namespace cv;
 
 ///Réglage de la teinte et de la saturation pour le vert
-int hGreen = 0;
-int sGreen = 0;
+//int hGreen = 0;
+//int sGreen = 0;
 
+int StartingPointX = 0 ;
+int StartingPointY = 0;
 ///Réglage de la teinte et de la saturation pour le mauve
 int hPink = 0;
 int sPink = 0;
@@ -27,7 +29,10 @@ Mat EdgeDetection::colorCalibration(){
     Mat imgGrey;
 
     cvtColor(img, imgGrey, COLOR_RGB2GRAY);
-
+    if(StartingPointX == 0 && StartingPointY == 0){
+        StartingPointX = imgGrey.cols / 2 ;
+        StartingPointY = imgGrey.rows / 2 ;
+    }
 //    namedWindow("frey",WINDOW_AUTOSIZE);
 //    imshow("frey", imgGrey);
 
@@ -35,12 +40,12 @@ Mat EdgeDetection::colorCalibration(){
     Mat mask;
 
     ///On récupère le niveau de gris du pixel du mileu (à changer)
-    auto midGrey = (int)imgGrey.at<uchar>(imgGrey.cols / 2, imgGrey.rows / 2);
+    auto midGrey = (int)imgGrey.at<uchar>(StartingPointY, StartingPointX);
     ///On créé le mask en fonction du niveau de gris précédent
     inRange(imgGrey, midGrey-40, midGrey+40, mask);
 
-//    namedWindow("mask2",WINDOW_AUTOSIZE);
-//    imshow("mask2", mask);
+//    namedWindow("mask2b",WINDOW_AUTOSIZE);
+//    imshow("mask2b", mask);
 
 
     ///On manipule le mask afin de ne récupérer que les 4 coins
@@ -50,7 +55,8 @@ Mat EdgeDetection::colorCalibration(){
     maskTemp = ~maskTemp;
     mask = maskTemp & mask;
     cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
-
+//    namedWindow("mask2bv",WINDOW_AUTOSIZE);
+//    imshow("mask2bv", mask);
     ///On enlève les parasites
     Mat kernel;
     kernel = getStructuringElement(2, Size(15,15), Point(2,2));
@@ -65,42 +71,42 @@ Mat EdgeDetection::colorCalibration(){
     Mat hsv;
     cvtColor(img, hsv, COLOR_RGB2HSV);
 
-    ///Calibration de la couleur verte et de la couleur rose
-    ///Initialisation des varible
-    int moyGreen = 0;
-    int moyGreenSat = 0;
-    int nbGreen = 0;
-    int moyPink = 0;
-    int moyPinkSat = 0;
-    int nbPink = 0;
-    ///On parcourt l'image
-    for(int i = 0; i < img.cols; i++){
-        for(int j = 0; j < img.rows; j++){
-            ///Si le pixel est un des 4 coins
-            if((int) mask.at<uchar>(j,i) == 255){
-                ///S'il est vert
-                if((int)hsv.at<Vec3b>(j,i)[0] < 125){
-                    moyGreen += (int)hsv.at<Vec3b>(j,i)[0];
-                    moyGreenSat += (int)hsv.at<Vec3b>(j,i)[1];
-                    nbGreen++;
-                }
-                ///S'il est rose
-                else{
-                    moyPink += (int)hsv.at<Vec3b>(j,i)[0];
-                    moyPinkSat += (int)hsv.at<Vec3b>(j,i)[1];
-                    nbPink++;
-                }
-            }
-        }
-    }
-
-    ///Pour ne pas diviser par 0
-    if(nbGreen != 0 || nbPink != 0){
-        hGreen = moyGreen/nbGreen;
-        sGreen = moyGreenSat/nbGreen;
-        hPink = moyPink/nbPink;
-        sPink = moyPinkSat/nbPink;
-    }
+//    ///Calibration de la couleur verte et de la couleur rose
+//    ///Initialisation des varible
+////    int moyGreen = 0;
+////    int moyGreenSat = 0;
+//    int nbGreen = 0;
+//    int moyPink = 0;
+//    int moyPinkSat = 0;
+//    int nbPink = 0;
+//    ///On parcourt l'image
+//    for(int i = 0; i < img.cols; i++){
+//        for(int j = 0; j < img.rows; j++){
+//            ///Si le pixel est un des 4 coins
+//            if((int) mask.at<uchar>(j,i) == 255){
+//                ///S'il est vert
+//                if((int)hsv.at<Vec3b>(j,i)[0] < 125){
+////                    moyGreen += (int)hsv.at<Vec3b>(j,i)[0];
+////                    moyGreenSat += (int)hsv.at<Vec3b>(j,i)[1];
+//                      nbGreen++;
+//                }
+//                ///S'il est rose
+//                else{
+//                    moyPink += (int)hsv.at<Vec3b>(j,i)[0];
+//                    moyPinkSat += (int)hsv.at<Vec3b>(j,i)[1];
+//                    nbPink++;
+//                }
+//            }
+//        }
+//    }
+//
+//    ///Pour ne pas diviser par 0
+//    if(nbGreen != 0 && nbPink != 0){
+//      //  hGreen = moyGreen/nbGreen;
+//       // sGreen = moyGreenSat/nbGreen;
+//        hPink = moyPink/nbPink;
+//        sPink = moyPinkSat/nbPink;
+//    }
 
     ///On retourne le mask
     return mask;
@@ -217,10 +223,11 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
         }
     }
 
-    cout << coordCorner.size() << endl;
 
     if(coordCorner.size() == 4) {
         coordCorner = sortPoints(coordCorner, hsv);
+        StartingPointX = (coordCorner[0].x + coordCorner[1].x)/2 ;
+        StartingPointY = (coordCorner[0].y + coordCorner[1].y)/2 ;
     }
 
     return coordCorner;
@@ -371,15 +378,17 @@ vector<Point2i> EdgeDetection::sortPoints(vector<Point2i> coord, Mat imgHSV){
 
     // hGreen+-12  sGreen+-45
     int compt =0;// sécurité
-    while( !((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] > (hPink - 12)
-            && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] < (hPink + 12))
-            && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[1] > (sPink - 45))
-            && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[1] < (sPink + 45))
-        ) && (compt < 5)){ //tant que le point unique n'est pas en premier on rotato
+    while( !((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] > 125
+            //(int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] > (hPink - 12)
+          //  && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[0] < (hPink + 12))
+          //  && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[1] > (sPink - 45))
+          //  && ((int)imgHSV.at<Vec3b>(coord[0].y,coord[0].x)[1] < (sPink + 45))
+        ) && (compt < 4)){ //tant que le point unique n'est pas en premier on rotato
 
         std::rotate(coord.begin(),coord.begin()+1,coord.end());
         compt++;
     }
+    cout << compt << endl ;
 
     return coord;
 }
