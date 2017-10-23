@@ -50,8 +50,8 @@ Mat EdgeDetection::colorCalibration(){
     mask = maskTemp & mask;
     cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
 
-    namedWindow("mask2b",WINDOW_AUTOSIZE);
-    imshow("mask2b", mask);
+//    namedWindow("mask2b",WINDOW_AUTOSIZE);
+//    imshow("mask2b", mask);
 
     ///On enlève les parasites
     Mat kernel;
@@ -61,8 +61,8 @@ Mat EdgeDetection::colorCalibration(){
 
     circle(mask, Point2i(StartingPointX,StartingPointY), 5, Scalar(150,150,150));
     ///Affichage du mask
-//    namedWindow("mask3",WINDOW_AUTOSIZE);
-//    imshow("mask3", mask);
+    namedWindow("mask3",WINDOW_AUTOSIZE);
+    imshow("mask3", mask);
 
     ///On retourne le mask
     return mask;
