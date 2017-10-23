@@ -80,6 +80,13 @@ bool CollisionDetection::findCollisions(Ball ball, vector<Wall> walls, vector<Wa
 
 /////////////////////////////////////       TESTS         //////////////////////////////////////////////////
 
+bool CollisionDetection:: hasArrived(Ball *ball, cv::Point2d *point){
+    return ball->getX() >= point->x - ball->getR()
+           && ball->getX() <= point->x + ball->getR()
+           && ball->getY() >= point->y - ball->getR()
+           && ball->getY() <= point->y + ball->getR();
+}
+
 bool CollisionDetection::intersect(Circle circle, Vector2d vect) {
     //Vector2d leftNormal = vect.rotate(-90degres)
     // i.e. v=[ax;ay] -> v_norm = [-ay:ax]

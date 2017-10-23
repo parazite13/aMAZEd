@@ -13,14 +13,22 @@ private:
 
     CameraStream *cameraStream;
 
-/** Trie le vector de 4 points comme suit:
- *          le point particulier (couleur différente) en premier et les suivants dans le sens horaire
- *
- * @param coord le vector de coordonnées des quatres coins
- * @param imgHSV la frame courante en hsv
- * @return retourne le vector de 4 points trié
- */
+    /** Trie le vector de 4 points comme suit:
+     *          le point particulier (couleur différente) en premier et les suivants dans le sens horaire
+     *
+     * @param coord le vector de coordonnées des quatres coins
+     * @param imgHSV la frame courante en hsv
+     * @return retourne le vector de 4 points trié
+     */
     std::vector<cv::Point2i> sortPoints(std::vector<cv::Point2i> coord, cv::Mat imgHSV);
+
+    /** enlève les doublons de lignes
+     *
+     * @param vectLines tableau de lignes à filtrer
+     * @param thresh seuil de proximité des lignes
+     * @return return le tableau de ligne sans doublons
+     */
+    std::vector<std::vector<cv::Point2i>> filterDouble(std::vector<std::vector<cv::Point2i>> vectLines, int thresh);
 
 public:
 
@@ -45,14 +53,6 @@ public:
      *      les lignes sont de la forme Point(x1,y1) Point(x2,y2) qui sont les coordonnées des extrémités d'une ligne
      * */
     std::vector<std::vector<cv::Point2i>> linesDetection(cv::Mat img, std::vector<cv::Point2i> coordCorner);
-
-    /** enlève les doublons de lignes
-     *
-     * @param vectLines tableau de lignes à filtrer
-     * @param thresh seuil de proximité des lignes
-     * @return return le tableau de ligne sans doublons
-     */
-    std::vector<std::vector<cv::Point2i>> filterDouble(std::vector<std::vector<cv::Point2i>> vectLines, int thresh);
 
     /** détecte les points d'arrivé et de départ
      * @param

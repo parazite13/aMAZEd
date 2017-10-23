@@ -24,6 +24,7 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
 
     this->textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
     this->textWall = imread("../assets/mazeWall.png"); //texture du mur du labyrinthe
+    this->textFlag = imread("../assets/mazeFlag.png"); //texture du drapeau d'arrivée
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE | GLUT_STENCIL);
     glutInitWindowSize(this->width, this->height);
@@ -31,9 +32,10 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     glViewport(0, 0, this->width, this->height);
 
     glutMaster->CallGlutCreateWindow(title, this);
-    glGenTextures(3, textArray);
+    glGenTextures(4, textArray);
     loadTexture(textArray[ID_TEXT_MAZE], textMaze);
     loadTexture(textArray[ID_TEXT_WALL], textWall);
+    loadTexture(textArray[ID_TEXT_FLAG], textFlag);
     applicateLight();
     glEnable(GL_DEPTH_TEST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 	// Nécessaire pour éviter une déformation de l'image
@@ -77,6 +79,7 @@ void OpenGL::CallBackDisplayFunc(){
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
     drawWalls();
+    drawFlag();
     glDisable(GL_TEXTURE_2D);
     applicateMaterial();
     glColor3f(1, 1, 1);
@@ -261,6 +264,31 @@ void OpenGL::applicateMaterial() {
     glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, Lshininess);
 }
 
+void OpenGL::drawFlag(){
+
+    glBindTexture(GL_TEXTURE_2D, textArray[ID_TEXT_FLAG]);
+
+    ///poteau du drapeau
+    glMatrixMode(GL_MODELVIEW);
+    GLUquadric* params;
+    params = gluNewQuadric();
+
+    glPushMatrix();
+    glTranslated(this->endPoint->x, this->endPoint->y, -FLAG_PIPE_HEIGHT);
+    gluCylinder(params,FLAG_PIPE_RADIUS,FLAG_PIPE_RADIUS,FLAG_PIPE_HEIGHT,20,1); //(..., rayon bas, rayon haut, hauteur,  maillage, "stack")
+    glPopMatrix();
+
+    ///drap du peau
+    glBegin(GL_POLYGON);
+    glTexCoord2d(0, 1);glVertex3d(this->endPoint->x - FLAG_PIPE_RADIUS, this->endPoint->y, -FLAG_PIPE_HEIGHT);
+    glTexCoord2d(1, 1);glVertex3d(this->endPoint->x - FLAG_PIPE_RADIUS + FLAG_TOP_SIZE, this->endPoint->y, -FLAG_PIPE_HEIGHT);
+    glTexCoord2d(1, 0);glVertex3d(this->endPoint->x - FLAG_PIPE_RADIUS + FLAG_TOP_SIZE, this->endPoint->y, -FLAG_PIPE_HEIGHT - FLAG_TOP_SIZE);
+    glTexCoord2d(0, 0);glVertex3d(this->endPoint->x - FLAG_PIPE_RADIUS, this->endPoint->y, -FLAG_PIPE_HEIGHT - FLAG_TOP_SIZE);
+
+    glEnd();
+
+}
+
 void OpenGL::applicateLight() {
     //Light
     glEnable(GL_LIGHTING);
@@ -363,8 +391,20 @@ void OpenGL::drawWalls() {
     glPopMatrix();
 }
 
+const vector<Wall> &OpenGL::getWalls() const {
+    return walls;
+}
+
 void OpenGL::setWalls(const std::vector<Wall> &walls) {
     this->walls = walls;
+}
+
+Point2d *OpenGL::getEndPoint(){
+    return this->endPoint;
+}
+
+void OpenGL::setEndPoint(cv::Point2d *point){
+    this->endPoint = point;
 }
 
 void OpenGL::setProjectionMatrix(const double *p) {

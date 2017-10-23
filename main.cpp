@@ -2,6 +2,7 @@
 #include "analyse/EdgeDetection.h"
 #include "modelisation/Transformation.h"
 #include "physics/AngleModel.h"
+#include "physics/CollisionDetection.h"
 
 using namespace cv;
 using namespace std;
@@ -69,6 +70,11 @@ void loop(int){
 
         ball->updatePosition();
 
+        //point temp égal à la variable globale car on peut pas passer de pointeur en paramètre, c'est super.
+        if(CollisionDetection::hasArrived(ball, window->getEndPoint())){
+            cout << "Tu es arrive !!" << endl;
+        }
+
         double p[16];
         double m[16];
         transformation.getProjectionMatrix(p);
@@ -108,29 +114,18 @@ void setupMaze(){
 
     }while(coordCorner.size() != 4);
 
-
     Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 1, 10);
 
+    ///point d'arrivée sauvegarde
+    Point2d *pointModelEnd = new Point2d(transformation->getModelPointFromImagePoint(coordStartEnd[1]));
+    window->setEndPoint(pointModelEnd);
 
-    /// Set la boule aux coordonnées du départ détecté
-    Mat startPoint = Mat(3, 1, CV_64FC1);
-    startPoint.at<double>(0) = coordStartEnd[0].x;
-    startPoint.at<double>(1) = coordStartEnd[0].y;
-    startPoint.at<double>(2) = 1;
-
-    Mat homography = transformation->getHomography();
-
-    /// Calcul des coordonées du départ sur le modele
-    Mat pointModel = homography * startPoint;
-
-    /// Normalisation des coordonnées
-    for(int i = 0; i < 3; i++){
-        pointModel.at<double>(i) /= pointModel.at<double>(2);
-    }
+    ///set la boule aux coordonnées du départ détectés
+    cv::Point2d pointModelStart = transformation->getModelPointFromImagePoint(coordStartEnd[0]);
 
     ///set la boule aux coordonnées du départ
-    ball->setX(pointModel.at<double>(0));
-    ball->setY(pointModel.at<double>(1));
+    ball->setX(pointModelStart.x);
+    ball->setY(pointModelStart.y);
 
     /// Calcul des coordonées des extrimités des murs
     vector<Wall> walls;

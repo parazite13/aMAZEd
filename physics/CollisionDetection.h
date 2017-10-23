@@ -22,6 +22,8 @@ public  :
      */
     static bool withinLine(Ball ball, Vector2d vect);
 
+    static bool hasArrived(Ball *ball, cv::Point2d *point);
+
     static bool intersect(Ball ball, Wall wall);
 
     /**

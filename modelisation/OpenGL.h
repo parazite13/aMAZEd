@@ -15,11 +15,17 @@ private:
     /// Nombre d'images par seconde
     int const MAX_FPS = 100;
 
+    /// Parametre du tableau
+    double const FLAG_PIPE_HEIGHT = 0.15;
+    double const FLAG_PIPE_RADIUS = 0.007;
+    double const FLAG_TOP_SIZE = 0.10;
+
     /// Index des textures
     int const ID_TEXT_CAM = 1;
     int const ID_TEXT_MAZE = 2;
     int const ID_TEXT_WALL = 3;
-    GLuint textArray[3];
+    int const ID_TEXT_FLAG = 4;
+    GLuint textArray[4];
 
     /// Matrice de projection
     double *p;
@@ -32,27 +38,25 @@ private:
 
     std::vector<Wall> walls;
 
+    cv::Point2d *endPoint;
     Ball *ball;
     CameraStream *cameraStream;
     cv::Mat textCam;
     cv::Mat textMaze;
     cv::Mat textWall;
+    cv::Mat textFlag;
 
     void drawAxes();
     void drawMazeGround();
     void drawBackground();
     void drawWalls();
+    void drawFlag();
     void loadTexture(GLuint id, cv::Mat img);
-
-    GLfloat sol[3][3] = {{0.0f,0.0f,0.0f},
-                         {1.0f,0.0f,0.0f},
-                         {0.0f,1.0f,0.0f}};
-    GLfloat light_pos[4] = {0.0f, 0.0f, 10.0f, 1.0};
-    GLfloat ombre[4][4];
-
 
 public:
 
+    cv::Point2d *getEndPoint();
+    void setEndPoint(cv::Point2d *point);
     void setWalls(const std::vector<Wall> &walls);
     void setProjectionMatrix(const double* p);
     void setModelviewMatrix(const double *m);
@@ -70,6 +74,8 @@ public:
 
 
     void CallBackIdleFunc() override;
+
+    const std::vector<Wall> &getWalls() const;
 };
 
 
