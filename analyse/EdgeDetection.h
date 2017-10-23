@@ -46,6 +46,22 @@ public:
      * */
     std::vector<std::vector<cv::Point2i>> linesDetection(cv::Mat img, std::vector<cv::Point2i> coordCorner);
 
+    /** enlève les doublons de lignes
+     *
+     * @param vectLines tableau de lignes à filtrer
+     * @param thresh seuil de proximité des lignes
+     * @return return le tableau de ligne sans doublons
+     */
+    std::vector<std::vector<cv::Point2i>> filterDouble(std::vector<std::vector<cv::Point2i>> vectLines, int thresh);
+
+    /** détecte les points d'arrivé et de départ
+     * @param
+     *      img : l'image où trouver les lignes
+     * @return
+     *      renvoie les coordonnées des deux points
+     */
+    std::vector<cv::Point2i> DepFinDetection(cv::Mat img);
+
 };
 
 
