@@ -91,17 +91,11 @@ GLint Ball::getM() const {
     return m;
 }
 
-void Ball::draw(bool shadow){
+void Ball::draw(){
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glTranslated(this->x, this->y, this->z);
-    if(shadow){
-        glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
-        glutSolidSphere(this->r, this->m, this->m);
-        glColor3f(1.0f, 1.0f, 1.0f);
-    } else{
-        glutSolidSphere(this->r, this->m, this->m);
-    }
+    glutSolidSphere(this->r, this->m, this->m);
     glPopMatrix();
 }
 

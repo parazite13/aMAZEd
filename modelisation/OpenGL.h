@@ -12,15 +12,15 @@ class OpenGL : public GlutWindow{
 private:
 
     /// Hauteur des murs
-    float const WALL_HEIGHT = -0.15f;
+    float const WALL_HEIGHT = -0.08f;
 
     /// Nombre d'images par seconde
     int const MAX_FPS = 100;
 
     /// Index des textures
-    int const ID_TEXT_CAM = 1;
-    int const ID_TEXT_MAZE = 2;
-    int const ID_TEXT_WALL = 3;
+    int const ID_TEXT_CAM = 0;
+    int const ID_TEXT_MAZE = 1;
+    int const ID_TEXT_WALL = 2;
     GLuint textArray[3];
 
     /// Matrice de projection
@@ -49,15 +49,14 @@ private:
     GLfloat sol[3][3] = {{0.0f,0.0f,0.0f},
                          {1.0f,0.0f,0.0f},
                          {0.0f,1.0f,0.0f}};
-    GLfloat light_pos[4] = {0.0f, 0.0f, 10.0f, 1.0};
+    GLfloat lightPos[4] = {0.0f, 0.0f, 10.0f, 1.0};
     GLfloat ombre[4][4];
-
 
 public:
 
     void setWalls(const std::vector<std::vector<cv::Mat>> &walls);
-    void setProjectionMatrix(double* p);
-    void setModelviewMatrix(double *m);
+    void setProjectionMatrix(const double* p);
+    void setModelviewMatrix(const double *m);
     void applicateMaterial();
     void applicateLight();
     void shadowMatrix(GLfloat points_plan[3][3], const GLfloat lightPos[4], GLfloat destMat[4][4]);

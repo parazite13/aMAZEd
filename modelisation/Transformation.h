@@ -93,6 +93,14 @@ public:
      *      Un vecteur contenant les 3 angles de rotation autour de x, y, z
      */
     cv::Vec3d getEulerAngle();
+
+    /**
+     * Calcule le point du modele associé au point image de l'image en parametre
+     * @param imagePoint : le point image en coordonées pixel repère openCV
+     * @return
+     *      Le point model correspondant au point image
+     */
+    cv::Point2d getModelPointFromImagePoint(const cv::Point2d &imagePoint) const;
 };
 
 

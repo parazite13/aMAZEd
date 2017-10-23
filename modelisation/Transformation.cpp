@@ -291,3 +291,23 @@ Vec3d Transformation::getEulerAngle() {
     return Vec3d(x, y, z);
 
 }
+
+cv::Point2d Transformation::getModelPointFromImagePoint(const cv::Point2d &imagePoint) const {
+
+    Mat imagePointMat = Mat(3, 1, CV_64FC1);
+    imagePointMat.at<double>(0) = imagePoint.x;
+    imagePointMat.at<double>(1) = imagePoint.y;
+    imagePointMat.at<double>(2) = 1;
+
+    /// Calcul des coordonées des murs sur le modele
+    Mat pointModelMat = this->H * imagePointMat;
+
+    /// Normalisation des coordonnées
+    for(int i = 0; i < 3; i++){
+        pointModelMat.at<double>(i) /= pointModelMat.at<double>(2);
+    }
+
+    Point2d pointModel(pointModelMat.at<double>(0), pointModelMat.at<double>(1));
+
+    return pointModel;
+}

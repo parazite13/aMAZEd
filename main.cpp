@@ -180,8 +180,8 @@ void setupMaze(){
     walls.push_back(wall);
     wall.clear();
 
-    wall.push_back(pointD);
     wall.push_back(pointA);
+    wall.push_back(pointD);
     walls.push_back(wall);
     wall.clear();
 

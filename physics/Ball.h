@@ -60,7 +60,7 @@ public:
 
     GLint getM() const;
 
-    void draw(bool shadow = false);
+    void draw();
 
     void updatePosition();
 };

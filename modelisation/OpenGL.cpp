@@ -7,7 +7,9 @@ using namespace std;
 
 /// Fonction appelé en boucle et définie dans le main
 void loop(int);
+
 OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream){
+
     this->ball = ball;
     this->cameraStream = cameraStream;
 
@@ -20,16 +22,18 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     this->p = new double[16];
     this->m = new double[16];
 
-    glGenTextures(2, textArray);
     this->textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
     this->textWall = imread("../assets/mazeWall.png"); //texture du mur du labyrinthe
 
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE | GLUT_STENCIL);
     glutInitWindowSize(this->width, this->height);
     glutInitWindowPosition(this->initPositionX, this->initPositionY);
     glViewport(0, 0, this->width, this->height);
 
     glutMaster->CallGlutCreateWindow(title, this);
+    glGenTextures(3, textArray);
+    loadTexture(textArray[ID_TEXT_MAZE], textMaze);
+    loadTexture(textArray[ID_TEXT_WALL], textWall);
     applicateLight();
     glEnable(GL_DEPTH_TEST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 	// Nécessaire pour éviter une déformation de l'image
@@ -44,6 +48,7 @@ OpenGL::~OpenGL(){
 void OpenGL::CallBackDisplayFunc(){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
@@ -57,6 +62,7 @@ void OpenGL::CallBackDisplayFunc(){
     glLoadIdentity();
     drawBackground();
 
+    glEnable(GL_CULL_FACE);
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixd(this->p);
 
@@ -65,36 +71,72 @@ void OpenGL::CallBackDisplayFunc(){
     glLoadMatrixd(this->m);
 //    drawAxes();
 
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, 1, 0xffffffff);
     drawMazeGround();
-    glDisable(GL_STENCIL_TEST);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
     drawWalls();
     glDisable(GL_TEXTURE_2D);
-
     applicateMaterial();
     ball->draw();
 
+
+////////
+
+    GLfloat sol[3][3] = {{0.0f,0.0f,0.0f},
+                         {1.0f,0.0f,0.0f},
+                         {0.0f,1.0f,0.0f}};
+    GLfloat lightPos[4] = {0.0f, 0.0f, 10.0f, 1.0};
+    GLfloat ombre[4][4];
+
+    // On utilise les faces avants seulement
+    // ... il faudrait l'utiliser tout le temps ... mais il y a des polygones à l'envers :-( !! )
+    // ... il y a un "soucis avec ça" ...
+
+    // La matrice de transformation
+    shadowMatrix(sol, lightPos, ombre);
+
+    // Ecriture dans le stencil buffer
+    // Pour écrire dans le stencil buffer, on utilise ni
+    // le test de profondeur et on ne tient pas compte de la couleur
+    glDisable(GL_DEPTH_TEST);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    // Tracé dans le stencil buffer (les points du sol à '1')
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 0xffffffff); // c'est ce '1'
+    drawMazeGround();
+
+    // On a a nouveau besoin du tampon de profondeur et de la couleur
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+
+    // On va afficher seulement les valeurs '1' du stencil
+    glStencilFunc(GL_EQUAL, 1, 0xffffffff); // c'est ce '1'
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+    // Tracé
+    // Pour la transparence de l'ombre
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    shadowMatrix(sol, light_pos, ombre);
-
-    glStencilFunc(GL_EQUAL, 1, 0xffffffff);
-   //   glDepthFunc(GL_LEQUAL);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-    glDisable(GL_DEPTH_TEST);
-    glColor4f(0.0, 0.0, 0.0, 0.5);
+    // Pour pouvoir utiliser glColor
+    glDisable(GL_LIGHTING);
+    // Ombre noire, "transparence" -> 0.5
+    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
     glPushMatrix();
-    glMultMatrixf((GLfloat *)ombre);
-    ball->draw(true);
+    glMultMatrixf((GLfloat *) ombre);
+    ball->draw();
     glPopMatrix();
+
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_LIGHTING);
     glDisable(GL_BLEND);
+    glDisable(GL_STENCIL_TEST);
+
+//////
 
     glutSwapBuffers();
 
@@ -185,14 +227,14 @@ void OpenGL::drawAxes(){
 }
 
 void OpenGL::drawMazeGround(){
-    loadTexture(textArray[ID_TEXT_MAZE], this->textMaze);
+    glBindTexture(GL_TEXTURE_2D, textArray[ID_TEXT_MAZE]);
 
     /// Plateau de jeu
     glBegin(GL_POLYGON);
     glTexCoord2d(0, 1);glVertex3f(0.0f, 0.0f, 0.0f);
-    glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, 0.0f);
-    glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, 0.0f);
     glTexCoord2d(1, 1);glVertex3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, 0.0f);
+    glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, 0.0f);
     glEnd();
 }
 
@@ -242,7 +284,7 @@ void OpenGL::shadowMatrix(GLfloat points_plan[3][3], const GLfloat lightPos[4], 
     planeCoeff[3] = - ( (planeCoeff[0]*points_plan[2][0]) + (planeCoeff[1]*points_plan[2][1]) + (planeCoeff[2]*points_plan[2][2]));
     dot = planeCoeff[0] * lightPos[0] + planeCoeff[1] * lightPos[1] + planeCoeff[2] * lightPos[2] + planeCoeff[3] * lightPos[3];
 
-    // maintenant, on projète
+    // maintenant, on projette
     // 1ère colonne
     destMat[0][0] = dot - lightPos[0] * planeCoeff[0];
     destMat[1][0] = 0.0f - lightPos[0] * planeCoeff[1];
@@ -307,7 +349,7 @@ void OpenGL::vecteurUnite(float vector[3]) {
 void OpenGL::drawWalls() {
 
     glPushMatrix();
-    loadTexture(textArray[ID_TEXT_WALL], this->textWall);
+    glBindTexture(GL_TEXTURE_2D, textArray[ID_TEXT_WALL]);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -320,9 +362,9 @@ void OpenGL::drawWalls() {
         glBegin(GL_POLYGON);
 
         glTexCoord2d(0, 0); glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), 0);
-        glTexCoord2d(0, 0.3); glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), WALL_HEIGHT);
-        glTexCoord2d(1, 0.3); glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), WALL_HEIGHT);
         glTexCoord2d(1, 0); glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), 0);
+        glTexCoord2d(1, 0.2); glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), WALL_HEIGHT);
+        glTexCoord2d(0, 0.2); glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), WALL_HEIGHT);
 
         glEnd();
 
@@ -334,13 +376,13 @@ void OpenGL::setWalls(const std::vector<std::vector<cv::Mat>> &walls) {
     this->walls = walls;
 }
 
-void OpenGL::setProjectionMatrix(double *p) {
+void OpenGL::setProjectionMatrix(const double *p) {
     for(int i = 0; i < 16; i++){
         this->p[i] = p[i];
     }
 }
 
-void OpenGL::setModelviewMatrix(double *m) {
+void OpenGL::setModelviewMatrix(const double *m) {
     for(int i = 0; i < 16; i++){
         this->m[i] = m[i];
     }
