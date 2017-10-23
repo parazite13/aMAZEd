@@ -133,8 +133,8 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
         }
     }
 
-    namedWindow("canny",WINDOW_AUTOSIZE);
-    imshow("canny", imgCanny);
+//    namedWindow("canny",WINDOW_AUTOSIZE);
+//    imshow("canny", imgCanny);
 
     return(filterDouble(vectLines,10));
 }
