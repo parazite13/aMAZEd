@@ -69,8 +69,6 @@ void loop(int){
 
         ball->updatePosition();
 
-//        cout << "X=" << ball->getVx() << " Y=" << ball->getVy() << " Z=" << ball->getVz() << endl;
-
         double p[16];
         double m[16];
         transformation.getProjectionMatrix(p);
@@ -92,7 +90,6 @@ void setupMaze(){
 
     Mat currentFrame = cameraStream->getCurrentFrame();
 
-    vector<vector<Mat>> walls;
     vector<Point2i> coordCorner;
     vector<Point2i> coordStartEnd;
     vector<vector<Point2i>> lines;
@@ -114,10 +111,8 @@ void setupMaze(){
 
     Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 1, 10);
 
-    walls.clear();
-    vector<Mat> wall;
 
-    ///set la boue aux coordonnées du départ détecté
+    /// Set la boule aux coordonnées du départ détecté
     Mat startPoint = Mat(3, 1, CV_64FC1);
     startPoint.at<double>(0) = coordStartEnd[0].x;
     startPoint.at<double>(1) = coordStartEnd[0].y;
@@ -137,70 +132,23 @@ void setupMaze(){
     ball->setX(pointModel.at<double>(0));
     ball->setY(pointModel.at<double>(1));
 
-    /// Pour chacune des lignes
+    /// Calcul des coordonées des extrimités des murs
+    vector<Wall> walls;
     for (const auto &line : lines) {
 
-        Mat pointImageA = Mat(3, 1, CV_64FC1);
-        pointImageA.at<double>(0) = line[0].x;
-        pointImageA.at<double>(1) = line[0].y;
-        pointImageA.at<double>(2) = 1;
+        Point2d pointImageA = transformation->getModelPointFromImagePoint(line[0]);
+        Point2d pointImageB = transformation->getModelPointFromImagePoint(line[1]);
 
-        Mat pointImageB = Mat(3, 1, CV_64FC1);
-        pointImageB.at<double>(0) = line[1].x;
-        pointImageB.at<double>(1) = line[1].y;
-        pointImageB.at<double>(2) = 1;
-
-        /// Calcul des coordonées des murs sur le modele
-        Mat pointModelA = homography * pointImageA;
-        Mat pointModelB = homography * pointImageB;
-
-        /// Normalisation des coordonnées
-        for(int i = 0; i < 3; i++){
-            pointModelA.at<double>(i) /= pointModelA.at<double>(2);
-            pointModelB.at<double>(i) /= pointModelB.at<double>(2);
-        }
-
-        wall.push_back(pointModelA);
-        wall.push_back(pointModelB);
+        Wall wall(pointImageA, pointImageB);
 
         walls.push_back(wall);
-        wall.clear();
     }
 
-    /// Définition des murs
-    Mat pointA = Mat(2, 1, CV_64FC1);
-    Mat pointB = Mat(2, 1, CV_64FC1);
-    Mat pointC = Mat(2, 1, CV_64FC1);
-    Mat pointD = Mat(2, 1, CV_64FC1);
-
-    pointA.at<double>(0) = 0.0;
-    pointA.at<double>(1) = 0.0;
-    pointB.at<double>(0) = 0.0;
-    pointB.at<double>(1) = 1.0;
-    pointC.at<double>(0) = 1.0;
-    pointC.at<double>(1) = 1.0;
-    pointD.at<double>(0) = 1.0;
-    pointD.at<double>(1) = 0.0;
-
-    wall.push_back(pointA);
-    wall.push_back(pointB);
-    walls.push_back(wall);
-    wall.clear();
-
-    wall.push_back(pointB);
-    wall.push_back(pointC);
-    walls.push_back(wall);
-    wall.clear();
-
-    wall.push_back(pointC);
-    wall.push_back(pointD);
-    walls.push_back(wall);
-    wall.clear();
-
-    wall.push_back(pointA);
-    wall.push_back(pointD);
-    walls.push_back(wall);
-    wall.clear();
+    /// Murs extérieurs
+    walls.emplace_back(Point2d(0, 0), Point2d(0, 1));
+    walls.emplace_back(Point2d(1, 1), Point2d(0, 1));
+    walls.emplace_back(Point2d(1, 1), Point2d(1, 0));
+    walls.emplace_back(Point2d(1, 0), Point2d(0, 0));
 
     window->setWalls(walls);
 

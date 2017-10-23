@@ -62,7 +62,7 @@ void OpenGL::CallBackDisplayFunc(){
     glLoadIdentity();
     drawBackground();
 
-    glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixd(this->p);
 
@@ -79,6 +79,7 @@ void OpenGL::CallBackDisplayFunc(){
     drawWalls();
     glDisable(GL_TEXTURE_2D);
     applicateMaterial();
+    glColor3f(1, 1, 1);
     ball->draw();
 
 
@@ -125,6 +126,7 @@ void OpenGL::CallBackDisplayFunc(){
     // Ombre noire, "transparence" -> 0.5
     glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
+    glEnable(GL_CULL_FACE);
     glPushMatrix();
     glMultMatrixf((GLfloat *) ombre);
     ball->draw();
@@ -355,24 +357,13 @@ void OpenGL::drawWalls() {
 
     /// Pour chacune des lignes
     for(auto &wall : this->walls){
-
-        Mat pointModelA = wall[0];
-        Mat pointModelB = wall[1];
-
-        glBegin(GL_POLYGON);
-
-        glTexCoord2d(0, 0); glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), 0);
-        glTexCoord2d(1, 0); glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), 0);
-        glTexCoord2d(1, 0.2); glVertex3d(pointModelB.at<double>(0), pointModelB.at<double>(1), WALL_HEIGHT);
-        glTexCoord2d(0, 0.2); glVertex3d(pointModelA.at<double>(0), pointModelA.at<double>(1), WALL_HEIGHT);
-
-        glEnd();
-
+        wall.draw();
     }
+
     glPopMatrix();
 }
 
-void OpenGL::setWalls(const std::vector<std::vector<cv::Mat>> &walls) {
+void OpenGL::setWalls(const std::vector<Wall> &walls) {
     this->walls = walls;
 }
 

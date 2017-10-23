@@ -6,13 +6,11 @@
 #include "GlutWindow.h"
 #include "GlutMaster.h"
 #include "../physics/Ball.h"
+#include "../physics/Wall.h"
 
 class OpenGL : public GlutWindow{
 
 private:
-
-    /// Hauteur des murs
-    float const WALL_HEIGHT = -0.05f;
 
     /// Nombre d'images par seconde
     int const MAX_FPS = 100;
@@ -32,7 +30,7 @@ private:
     int height, width;
     int initPositionX, initPositionY;
 
-    std::vector<std::vector<cv::Mat>> walls;
+    std::vector<Wall> walls;
 
     Ball *ball;
     CameraStream *cameraStream;
@@ -55,9 +53,9 @@ private:
 
 public:
 
-    void setWalls(const std::vector<std::vector<cv::Mat>> &walls);
-    void setProjectionMatrix(double* p);
-    void setModelviewMatrix(double *m);
+    void setWalls(const std::vector<Wall> &walls);
+    void setProjectionMatrix(const double* p);
+    void setModelviewMatrix(const double *m);
     void applicateMaterial();
     void applicateLight();
     void shadowMatrix(GLfloat points_plan[3][3], const GLfloat lightPos[4], GLfloat destMat[4][4]);

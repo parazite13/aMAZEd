@@ -14,7 +14,7 @@ add_executable(aMAZEd main.cpp stream/CameraStream.cpp stream/CameraStream.h ana
         modelisation/GlutMaster.cpp modelisation/GlutMaster.h modelisation/GlutWindow.cpp modelisation/GlutWindow.h
         physics/Ball.cpp physics/Ball.h physics/AngleModel.cpp physics/AngleModel.h physics/CollisionDetection.cpp
         physics/CollisionDetection.h physics/Vector2d.cpp physics/Vector2d.h physics/CollisionDetection.cpp physics/CollisionDetection.h
-        physics/Vector2d.cpp physics/Vector2d.h)
+        physics/Vector2d.cpp physics/Vector2d.h physics/Wall.cpp physics/Wall.h)
 
 # add OpenCV libs
 set(OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs opencv_videoio opencv_calib3d)
