@@ -94,11 +94,16 @@ void setupMaze(){
 
     vector<vector<Mat>> walls;
     vector<Point2i> coordCorner;
+    vector<Point2i> coordPoint;
     vector<vector<Point2i>> lines;
 
     /// Tant que les 4 coins n'ont pas été détéctées
     do {
         currentFrame = cameraStream->getCurrentFrame();
+
+        do {
+            coordPoint = edgeDetection.DepFinDetection(currentFrame);
+        }while(coordPoint.size() != 2);
 
         coordCorner = edgeDetection.getCorner(currentFrame);
 
