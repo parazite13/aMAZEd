@@ -13,14 +13,16 @@ class Wall {
 private:
 
     /// Hauteur des murs
-    float const WALL_HEIGHT = -0.05f;
+    double const WALL_HEIGHT = -0.05f;
 
     bool vertical;
 
     cv::Point2d start;
-    cv::Point2d end;
 
+    cv::Point2d end;
 public:
+
+    double const THICKNESS = 0.02;
 
     Wall();
     Wall(const Wall &wall);
