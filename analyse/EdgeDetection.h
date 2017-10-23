@@ -60,7 +60,7 @@ public:
      * @return
      *      renvoie les coordonnées des deux points
      */
-    std::vector<cv::Point2i> DepFinDetection(cv::Mat img);
+    std::vector<cv::Point2i> startEndDetection(cv::Mat img);
 
 };
 
