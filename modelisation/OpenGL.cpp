@@ -20,6 +20,7 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     this->p = new double[16];
     this->m = new double[16];
 
+    glGenTextures(2, textArray);
     this->textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
     this->textWall = imread("../assets/mazeWall.png"); //texture du mur du labyrinthe
 
@@ -184,7 +185,7 @@ void OpenGL::drawAxes(){
 }
 
 void OpenGL::drawMazeGround(){
-    loadTexture(ID_TEXT_MAZE, this->textMaze);
+    loadTexture(textArray[ID_TEXT_MAZE], this->textMaze);
 
     /// Plateau de jeu
     glBegin(GL_POLYGON);
@@ -196,7 +197,7 @@ void OpenGL::drawMazeGround(){
 }
 
 void OpenGL::drawBackground() {
-    loadTexture(ID_TEXT_CAM, this->textCam);
+    loadTexture(textArray[ID_TEXT_CAM], this->textCam);
     glBegin(GL_POLYGON);
     glTexCoord2d(0, 1);glVertex3f(0.0, 0.0f, -5.0f);
     glTexCoord2d(0, 0);glVertex3f(0.0f, 1.0f, -5.0f);
@@ -306,18 +307,7 @@ void OpenGL::vecteurUnite(float vector[3]) {
 void OpenGL::drawWalls() {
 
     glPushMatrix();
-    loadTexture(ID_TEXT_WALL, this->textWall);
-
-//    glEnable(GL_LIGHTING);
-//    GLfloat LPosition[4] =  { 0.0f, 1.0, -3.0f, 1.0};
-//    GLfloat LAmbient[4] =  { 10.4, 10.4, 10.4, 1.0};
-//    GLfloat LDiffuse[4] =  {2.0, 2.0, 2.0, 1.0};
-//    GLfloat LSpecular[4] =  {1.0, 1.0, 1.0, 1.0};
-//    glLightfv(GL_LIGHT0, GL_POSITION, LPosition);   // position
-//    glLightfv(GL_LIGHT0, GL_AMBIENT, LAmbient );    // couleur de la forme
-//    glLightfv(GL_LIGHT0, GL_DIFFUSE, LDiffuse);     // couleur de la lumière
-//    glLightfv(GL_LIGHT0, GL_SPECULAR, LSpecular);   // couleur du reflet
-//    glEnable(GL_LIGHT0);
+    loadTexture(textArray[ID_TEXT_WALL], this->textWall);
 
     glEnable(GL_DEPTH_TEST);
 

@@ -17,10 +17,11 @@ private:
     /// Nombre d'images par seconde
     int const MAX_FPS = 100;
 
-    /// Identifiants des textures
-    GLuint const ID_TEXT_CAM = 1;
-    GLuint const ID_TEXT_MAZE = 2;
-    GLuint const ID_TEXT_WALL = 3;
+    /// Index des textures
+    int const ID_TEXT_CAM = 1;
+    int const ID_TEXT_MAZE = 2;
+    int const ID_TEXT_WALL = 3;
+    GLuint textArray[3];
 
     /// Matrice de projection
     double *p;
