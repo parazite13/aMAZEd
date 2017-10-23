@@ -39,8 +39,8 @@ Mat EdgeDetection::colorCalibration(){
     ///On créé le mask en fonction du niveau de gris précédent
     inRange(imgGrey, midGrey-40, midGrey+40, mask);
 
-    namedWindow("mask2",WINDOW_AUTOSIZE);
-    imshow("mask2", mask);
+//    namedWindow("mask2",WINDOW_AUTOSIZE);
+//    imshow("mask2", mask);
 
     ///On manipule le mask afin de ne récupérer que les 4 coins
     Mat maskTemp = mask.clone();
@@ -50,8 +50,8 @@ Mat EdgeDetection::colorCalibration(){
     mask = maskTemp & mask;
     cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
 
-//    namedWindow("mask2b",WINDOW_AUTOSIZE);
-//    imshow("mask2b", mask);
+    namedWindow("mask2b",WINDOW_AUTOSIZE);
+    imshow("mask2b", mask);
 
     ///On enlève les parasites
     Mat kernel;
