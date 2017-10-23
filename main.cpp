@@ -105,7 +105,9 @@ void setupMaze(){
     do {
         currentFrame = cameraStream->getCurrentFrame();
 
-        coordPoint = edgeDetection.DepFinDetection(currentFrame);
+        do {
+            coordPoint = edgeDetection.DepFinDetection(currentFrame);
+        }while(coordPoint.size() != 2);
 
         coordCorner = edgeDetection.getCorner(currentFrame);
 
