@@ -20,17 +20,17 @@ public  :
      * Retourne vrai si la position x et y du cercle
      * et comprise entre le x1;y1 et x2;y2 du vecteur
      */
-    static bool withinLine(Ball ball, Vector2d vect);
+    static bool withinLine(Ball *ball, Vector2d vect);
 
     static bool hasArrived(Ball *ball, cv::Point2d *point);
 
-    static bool intersect(Ball ball, Wall wall);
+    static bool intersect(Ball *ball, Wall wall);
 
     /**
      *  Parcours tous les murs (walls) et range dans touchedWalls les murs qui touchent la balle.
      *  La fonction renvoie false si aucun mur a ete touche, true sinon
      */
-    static bool findCollisions(Ball ball, std::vector<Wall> walls, std::vector<Wall> &touchedWalls);
+    static bool findCollisions(Ball *ball, std::vector<Wall> walls, std::vector<Wall> &touchedWalls);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////

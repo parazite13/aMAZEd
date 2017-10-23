@@ -18,7 +18,7 @@ void setupMaze();
 
 int main(int argc, char** argv){
 
-    ball = new Ball(0.5, 0.5, 0.05, 50);
+    ball = new Ball(0.5, 0.5, 0.03, 50);
     cameraStream = new CameraStream();
     namedWindow("aMAZEd Calibration");
 
@@ -67,6 +67,19 @@ void loop(int){
 
         ball->setAx(angleModel->getAngleY() / 5);
         ball->setAy(-angleModel->getAngleX() / 5);
+
+        vector<Wall> walls;
+        if(CollisionDetection::findCollisions(ball, window->getWalls(), walls)){
+
+//            ball->setAx(0.0);
+//            ball->setAy(0.0);
+
+            if(walls[0].isVertical()){
+                ball->setVx(-ball->getVx() / 2);
+            }else{
+                ball->setVy(-ball->getVy() / 2);
+            }
+        }
 
         ball->updatePosition();
 
