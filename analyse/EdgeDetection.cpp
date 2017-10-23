@@ -37,7 +37,7 @@ Mat EdgeDetection::colorCalibration(){
     ///On récupère le niveau de gris du pixel du mileu (à changer)
     auto midGrey = (int)imgGrey.at<uchar>(StartingPointY, StartingPointX);
     ///On créé le mask en fonction du niveau de gris précédent
-    inRange(imgGrey, midGrey-20, midGrey+50, mask);
+    inRange(imgGrey, midGrey-40, midGrey+40, mask);
 
 //    namedWindow("mask2b",WINDOW_AUTOSIZE);
 //    imshow("mask2b", mask);
@@ -70,7 +70,10 @@ Mat EdgeDetection::colorCalibration(){
 vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> coordCorner){
     /// détection des contours avec Canny
     Mat imgCanny;
-    Canny(img, imgCanny, 100, 300, 3);
+
+    cvtColor(img, imgCanny, COLOR_RGB2GRAY);
+    blur( imgCanny, imgCanny, Size(3,3) );
+    Canny(imgCanny, imgCanny, 50, 200, 3);
 
     /// detection des lignes dans le vect lines
     /// vecteur dans lequel sont stockées les lignes
@@ -84,7 +87,7 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
     /// longueur min d'une ligne détectée
     /// max ecart entre pixels de la ligne)
 
-    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 80, 20, 15);
+    HoughLinesP(imgCanny, lines, 1, CV_PI/180, 30, 15, 10);
 
     /// tableau de couples de points
     vector<vector<Point2i>> vectLines;
@@ -122,10 +125,12 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
         if((int)mask.at<uchar>(vectPoints[0].y, vectPoints[0].x) == 255 && (int)mask.at<uchar>(vectPoints[1].y, vectPoints[1].x) == 255) {
             /// ajout du couple au tableau
             vectLines.push_back(vectPoints) ;
-            line( img, vectPoints[0], vectPoints[1], Scalar(0,0,255), 1, CV_AA);
+            //line( imgCanny, vectPoints[0], vectPoints[1], Scalar(0,0,0), 1, CV_AA);
         }
     }
 
+    namedWindow("canny",WINDOW_AUTOSIZE);
+    imshow("canny", imgCanny);
 
     return(filterDouble(vectLines,10));
 }
@@ -138,12 +143,13 @@ vector<vector<Point2i>> EdgeDetection::filterDouble(vector<vector<Point2i>> vect
         for(vector<Point2i> goodLine : linesFilter){
 
             isGood &= (( line[0].x < goodLine[0].x - thresh ) || (line[0].x > goodLine[0].x + thresh )
-                       ||( line[0].y < goodLine[0].y - thresh ) || (line[0].y > goodLine[0].y + thresh ))
-                      &&   (( line[1].x < goodLine[1].x - thresh ) || (line[1].x > goodLine[1].x + thresh )
+                       ||( line[0].y < goodLine[0].y - thresh ) || (line[0].y > goodLine[0].y + thresh )
+                      ||   ( line[1].x < goodLine[1].x - thresh ) || (line[1].x > goodLine[1].x + thresh )
                             || ( line[1].y < goodLine[1].y - thresh ) || (line[1].y > goodLine[1].y + thresh ))
-                      ||      (( line[0].x < goodLine[0].x - thresh ) || (line[0].x > goodLine[0].x + thresh )
-                               ||( line[0].y < goodLine[0].y - thresh ) || (line[0].y > goodLine[0].y + thresh ))
-                              &&   (( line[1].x < goodLine[1].x - thresh ) || (line[1].x > goodLine[1].x + thresh )
+
+                      &&      (( line[0].x < goodLine[0].x - thresh ) || (line[0].x > goodLine[0].x + thresh )
+                               ||( line[0].y < goodLine[0].y - thresh ) || (line[0].y > goodLine[0].y + thresh )
+                              ||   ( line[1].x < goodLine[1].x - thresh ) || (line[1].x > goodLine[1].x + thresh )
                                     || ( line[1].y < goodLine[1].y - thresh ) || (line[1].y > goodLine[1].y + thresh ));
         }
         if (isGood) linesFilter.push_back(line) ;
