@@ -18,7 +18,7 @@ private:
     GLint m;    //maillage
 
 public:
-    Ball(double x, double y, double z, double r, GLint m);
+    Ball(double x, double y, double r, GLint m);
 
     double getX() const;
 

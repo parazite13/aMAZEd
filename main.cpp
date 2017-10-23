@@ -17,7 +17,7 @@ void setupMaze();
 
 int main(int argc, char** argv){
 
-    ball = new Ball(0.5, 0.5, -0.05, 0.05, 50);
+    ball = new Ball(0.5, 0.5, 0.05, 50);
     cameraStream = new CameraStream();
     namedWindow("aMAZEd Calibration");
 
