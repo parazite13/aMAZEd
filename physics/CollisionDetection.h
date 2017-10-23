@@ -7,12 +7,33 @@
 #include <opencv2/imgproc.hpp>
 #include "Ball.h"
 #include "Vector2d.h"
+#include "Wall.h"
 
 class CollisionDetection {
 private :
 
 public  :
-//////////////////////////   Structures + constructeurs   ////////////////////////////////
+////////////////////////////    Collision detection    /////////////////////////////////
+
+    /**
+     * Le vecteur doit etre pre-traite avec sortPoints
+     * Retourne vrai si la position x et y du cercle
+     * et comprise entre le x1;y1 et x2;y2 du vecteur
+     */
+    static bool withinLine(Ball ball, Vector2d vect);
+
+    static bool intersect(Ball ball, Wall wall);
+
+    /**
+     *  Parcours tous les murs (walls) et range dans touchedWalls les murs qui touchent la balle.
+     *  La fonction renvoie false si aucun mur a ete touche, true sinon
+     */
+    static bool findCollisions(Ball ball, std::vector<Wall> walls, std::vector<Wall> &touchedWalls);
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////    TESTS !     ///////////////////////////////////////////
     // Test
     struct Circle
     {
@@ -24,10 +45,6 @@ public  :
     static Circle createCircle(float radius, cv::Point2d center) ;
     static void drawCircle(Circle circle);
 
-////////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////    Collision detection    /////////////////////////////////
 
     /**
      * Le vecteur doit etre pre-traite avec sortPoints
@@ -36,11 +53,7 @@ public  :
      */
     static bool withinLine(Circle circle, Vector2d vect);
 
-    static bool withinLine(Ball ball, Vector2d vect);
-
-    static bool intersect(Ball ball, double x1, double y1, double x2, double y2);
-
-    static bool intersect(Circle circle, double x1, double y1, double x2 ,double y2);
+    static bool intersect(Circle circle, Vector2d vect);
 
     static bool onSegment(cv::Point2d p, cv::Point2d q, cv::Point2d r);
 
@@ -55,8 +68,7 @@ public  :
     /// L'arete est representee par ses 2 points, renvoyes dans un vector
     //static std::vector<cv::Point2d> selectNearestEdge(cv::Point2d circleCenter, Hitbox box);
 
-
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
 
 };
 
