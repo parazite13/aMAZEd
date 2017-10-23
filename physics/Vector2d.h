@@ -16,6 +16,11 @@ class Vector2d {
         /// Projette le vecteur sur v2
         double projectionOn(Vector2d v2);
 
+        // "Oriente" le vecteur de gauche a droite, bas en haut
+        void sortPoints();
+
+        void setMagnitude(double magnitude);
+
         ///Calcule la norme d'un vecteur
         double getMagnitude();
 
@@ -31,6 +36,13 @@ class Vector2d {
          * @return Le produit vectoriel des 2 vecteurs
          */
         double dotProduct(Vector2d vect);
+
+        /**
+         *  Change les composantes X et Y du vecteur
+         * @param magnitude
+         * @param angleRadian
+         */
+        void polar(double magnitude, double angleRadian);
 
         double get_x1() const;
 

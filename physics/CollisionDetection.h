@@ -29,7 +29,16 @@ public  :
 
 ////////////////////////////    Collision detection    /////////////////////////////////
 
-    static bool intersect(Ball ball);
+    /**
+     * Le vecteur doit etre pre-traite avec sortPoints
+     * Retourne vrai si la position x et y du cercle
+     * et comprise entre le x1;y1 et x2;y2 du vecteur
+     */
+    static bool withinLine(Circle circle, Vector2d vect);
+
+    static bool withinLine(Ball ball, Vector2d vect);
+
+    static bool intersect(Ball ball, double x1, double y1, double x2, double y2);
 
     static bool intersect(Circle circle, double x1, double y1, double x2 ,double y2);
 
