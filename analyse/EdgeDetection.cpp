@@ -37,10 +37,10 @@ Mat EdgeDetection::colorCalibration(){
     ///On récupère le niveau de gris du pixel du mileu (à changer)
     auto midGrey = (int)imgGrey.at<uchar>(StartingPointY, StartingPointX);
     ///On créé le mask en fonction du niveau de gris précédent
-    inRange(imgGrey, midGrey-20, midGrey+50, mask);
+    inRange(imgGrey, midGrey-40, midGrey+40, mask);
 
-//    namedWindow("mask2",WINDOW_AUTOSIZE);
-//    imshow("mask2", mask);
+    namedWindow("mask2",WINDOW_AUTOSIZE);
+    imshow("mask2", mask);
 
     ///On manipule le mask afin de ne récupérer que les 4 coins
     Mat maskTemp = mask.clone();
@@ -61,8 +61,8 @@ Mat EdgeDetection::colorCalibration(){
 
     circle(mask, Point2i(StartingPointX,StartingPointY), 5, Scalar(150,150,150));
     ///Affichage du mask
-    namedWindow("mask3",WINDOW_AUTOSIZE);
-    imshow("mask3", mask);
+//    namedWindow("mask3",WINDOW_AUTOSIZE);
+//    imshow("mask3", mask);
 
     ///On retourne le mask
     return mask;
@@ -213,7 +213,7 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
 }
 
 
-vector<Point2i> EdgeDetection::DepFinDetection(Mat img) {
+vector<Point2i> EdgeDetection::startEndDetection(Mat img) {
 
     ///Initialisation des variables
     Mat mask = colorCalibration();

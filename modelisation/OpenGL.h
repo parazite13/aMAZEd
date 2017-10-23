@@ -12,7 +12,7 @@ class OpenGL : public GlutWindow{
 private:
 
     /// Hauteur des murs
-    float const WALL_HEIGHT = -0.15f;
+    float const WALL_HEIGHT = -0.05f;
 
     /// Nombre d'images par seconde
     int const MAX_FPS = 100;

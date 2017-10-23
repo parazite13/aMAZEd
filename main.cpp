@@ -94,17 +94,16 @@ void setupMaze(){
 
     vector<vector<Mat>> walls;
     vector<Point2i> coordCorner;
-    vector<Point2i> coordPoint;
+    vector<Point2i> coordStartEnd;
     vector<vector<Point2i>> lines;
 
     /// Tant que les 4 coins n'ont pas été détéctées
     do {
         currentFrame = cameraStream->getCurrentFrame();
-
-        do {
-            coordPoint = edgeDetection.DepFinDetection(currentFrame);
-        }while(coordPoint.size() != 2);
-
+        do{
+            coordStartEnd = edgeDetection.startEndDetection(currentFrame);
+        }
+        while( coordStartEnd.size() != 2);
         coordCorner = edgeDetection.getCorner(currentFrame);
 
         /// Detection des murs
@@ -118,6 +117,26 @@ void setupMaze(){
     walls.clear();
     vector<Mat> wall;
 
+    ///set la boue aux coordonnées du départ détecté
+    Mat startPoint = Mat(3, 1, CV_64FC1);
+    startPoint.at<double>(0) = coordStartEnd[0].x;
+    startPoint.at<double>(1) = coordStartEnd[0].y;
+    startPoint.at<double>(2) = 1;
+
+    Mat homography = transformation->getHomography();
+
+    /// Calcul des coordonées du départ sur le modele
+    Mat pointModel = homography * startPoint;
+
+    /// Normalisation des coordonnées
+    for(int i = 0; i < 3; i++){
+        pointModel.at<double>(i) /= pointModel.at<double>(2);
+    }
+
+    ///set la boule aux coordonnées du départ
+    ball->setX(pointModel.at<double>(0));
+    ball->setY(pointModel.at<double>(1));
+
     /// Pour chacune des lignes
     for (const auto &line : lines) {
 
@@ -130,8 +149,6 @@ void setupMaze(){
         pointImageB.at<double>(0) = line[1].x;
         pointImageB.at<double>(1) = line[1].y;
         pointImageB.at<double>(2) = 1;
-
-        Mat homography = transformation->getHomography();
 
         /// Calcul des coordonées des murs sur le modele
         Mat pointModelA = homography * pointImageA;
