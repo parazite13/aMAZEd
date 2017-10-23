@@ -58,23 +58,18 @@ void loop(int){
     vector<Point2i> coordCorner;
     Mat currentFrame = cameraStream->getCurrentFrame();
     coordCorner = edgeDetection.getCorner(currentFrame);
-    edgeDetection.linesDetection(currentFrame, coordCorner);
 
     /// Si les 4 coins ont été détéctées
     if(coordCorner.size() == 4) {
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
         angleModel->setCurrentTransformation(&transformation);
 
-//        ball->setX(angleModel->getAngleY() * 2 + 0.5);
-//        ball->setY(-angleModel->getAngleX() * 2 + 0.5);
-
         ball->setAx(angleModel->getAngleY() / 5);
         ball->setAy(-angleModel->getAngleX() / 5);
 
         ball->updatePosition();
 
-        cout << "VX=" << ball->getVx() << " VY=" << ball->getVy() << " VZ=" << ball->getVz() << endl;
-//        cout << coordCorner << endl << endl;
+//        cout << "X=" << ball->getVx() << " Y=" << ball->getVy() << " Z=" << ball->getVz() << endl;
 
         double p[16];
         double m[16];
@@ -113,15 +108,13 @@ void setupMaze(){
     }while(coordCorner.size() != 4);
 
 
-    Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
+    Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 1, 10);
 
     walls.clear();
     vector<Mat> wall;
 
     /// Pour chacune des lignes
     for (const auto &line : lines) {
-
-        wall.clear();
 
         Mat pointImageA = Mat(3, 1, CV_64FC1);
         pointImageA.at<double>(0) = line[0].x;
@@ -149,10 +142,10 @@ void setupMaze(){
         wall.push_back(pointModelB);
 
         walls.push_back(wall);
+        wall.clear();
     }
 
     /// Définition des murs
-    wall.clear();
     Mat pointA = Mat(2, 1, CV_64FC1);
     Mat pointB = Mat(2, 1, CV_64FC1);
     Mat pointC = Mat(2, 1, CV_64FC1);

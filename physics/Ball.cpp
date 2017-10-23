@@ -91,11 +91,17 @@ GLint Ball::getM() const {
     return m;
 }
 
-void Ball::draw(){
+void Ball::draw(bool shadow){
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glTranslated(this->x, this->y, this->z);
-    glutSolidSphere(this->r, this->m, this->m);
+    if(shadow){
+        glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+        glutSolidSphere(this->r, this->m, this->m);
+        glColor3f(1.0f, 1.0f, 1.0f);
+    } else{
+        glutSolidSphere(this->r, this->m, this->m);
+    }
     glPopMatrix();
 }
 
@@ -106,20 +112,20 @@ void Ball::updatePosition() {
     x += vx;
     y += vy;
 
-    if(x > 1 - r){
+    if(x > 1 - r && vx > 0){
         x = 1 - r;
         vx = 0.0;
     }
-    if(x < r){
+    if(x < r && vx < 0){
         x = r;
         vx = 0.0;
     }
 
-    if(y > 1 - r){
+    if(y > 1 - r && vy > 0){
         y = 1 - r;
         vy = 0.0;
     }
-    if(y < r){
+    if(y < r && vy < 0){
         y = r;
         vy = 0.0;
     }
