@@ -15,12 +15,15 @@ private:
     /// Hauteur des murs
     float const WALL_HEIGHT = -0.05f;
 
+    bool vertical;
+
     cv::Point2d start;
     cv::Point2d end;
 
 public:
 
     Wall();
+    Wall(const Wall &wall);
     Wall(cv::Point2d start, cv::Point2d end);
 
     Wall& operator=(const Wall& wall);
@@ -29,6 +32,7 @@ public:
     void setEnd(const cv::Point2d &end);
     const cv::Point2d &getStart() const;
     const cv::Point2d &getEnd() const;
+    bool isVertical() const;
 
     void draw();
 

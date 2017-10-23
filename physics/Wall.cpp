@@ -19,6 +19,7 @@ void Wall::draw() {
 Wall::Wall(cv::Point2d start, cv::Point2d end) {
     this->start = start;
     this->end = end;
+    this->vertical = (fabs(start.x - end.x) < fabs(start.y - end.y));
 }
 
 const Point2d &Wall::getStart() const {
@@ -37,7 +38,17 @@ void Wall::setEnd(const Point2d &end) {
     Wall::end = end;
 }
 
+bool Wall::isVertical() const {
+    return vertical;
+}
+
 Wall& Wall::operator=(const Wall& wall) {
     this->start = wall.getStart();
     this->end = wall.getEnd();
+}
+
+Wall::Wall(const Wall &wall) {
+    this->start = wall.getStart();
+    this->end = wall.getEnd();
+    this->vertical = wall.isVertical();
 }
