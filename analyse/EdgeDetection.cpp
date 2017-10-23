@@ -30,25 +30,28 @@ Mat EdgeDetection::colorCalibration(){
         StartingPointY = imgGrey.rows / 2 ;
     }
 
-
     ///Création d'un mask permetant de sélectionner uniquement les 4 coins
     Mat mask;
+
 
     ///On récupère le niveau de gris du pixel du mileu (à changer)
     auto midGrey = (int)imgGrey.at<uchar>(StartingPointY, StartingPointX);
     ///On créé le mask en fonction du niveau de gris précédent
     inRange(imgGrey, midGrey-20, midGrey+50, mask);
 
-//    namedWindow("mask2b",WINDOW_AUTOSIZE);
-//    imshow("mask2b", mask);
+//    namedWindow("mask2",WINDOW_AUTOSIZE);
+//    imshow("mask2", mask);
 
     ///On manipule le mask afin de ne récupérer que les 4 coins
     Mat maskTemp = mask.clone();
-    cv::floodFill(maskTemp, cv::Point(imgGrey.cols/2, imgGrey.rows/2), CV_RGB(0, 0, 0));
+    cv::floodFill(maskTemp, cv::Point(StartingPointX, StartingPointY), CV_RGB(0, 0, 0));
     ///Inversion du mask
     maskTemp = ~maskTemp;
     mask = maskTemp & mask;
     cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
+
+//    namedWindow("mask2b",WINDOW_AUTOSIZE);
+//    imshow("mask2b", mask);
 
     ///On enlève les parasites
     Mat kernel;
@@ -56,6 +59,7 @@ Mat EdgeDetection::colorCalibration(){
     dilate(mask, mask, kernel);
     erode(mask, mask, kernel);
 
+    circle(mask, Point2i(StartingPointX,StartingPointY), 5, Scalar(150,150,150));
     ///Affichage du mask
     namedWindow("mask3",WINDOW_AUTOSIZE);
     imshow("mask3", mask);
