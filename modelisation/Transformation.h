@@ -7,8 +7,8 @@ class Transformation {
 
 private:
 
-    const float FX =550;/// distance focale x de la caméra
-    const float FY =550;/// distance focale y de la caméra
+    const float FX =1200;/// distance focale x de la caméra
+    const float FY =1200;/// distance focale y de la caméra
     double X0;          /// centre de l'image en x
     double Y0;          /// centre de l'image en y
 

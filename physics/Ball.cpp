@@ -106,21 +106,21 @@ void Ball::updatePosition() {
     x += vx;
     y += vy;
 
-    if(x > 1 - r && vx > 0){
-        x = 1 - r;
-        vx = 0.0;
-    }
-    if(x < r && vx < 0){
-        x = r;
-        vx = 0.0;
-    }
-
-    if(y > 1 - r && vy > 0){
-        y = 1 - r;
-        vy = 0.0;
-    }
-    if(y < r && vy < 0){
-        y = r;
-        vy = 0.0;
-    }
+//    if(x > 1 - r && vx > 0){
+//        x = 1 - r;
+//        vx = 0.0;
+//    }
+//    if(x < r && vx < 0){
+//        x = r;
+//        vx = 0.0;
+//    }
+//
+//    if(y > 1 - r && vy > 0){
+//        y = 1 - r;
+//        vy = 0.0;
+//    }
+//    if(y < r && vy < 0){
+//        y = r;
+//        vy = 0.0;
+//    }
 }

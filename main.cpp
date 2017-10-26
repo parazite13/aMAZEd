@@ -62,28 +62,50 @@ void loop(int){
 
     /// Si les 4 coins ont été détéctées
     if(coordCorner.size() == 4) {
-        Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 10);
+        Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 20);
         angleModel->setCurrentTransformation(&transformation);
-
-        ball->setAx(angleModel->getAngleY() / 5);
-        ball->setAy(-angleModel->getAngleX() / 5);
 
         vector<Wall> walls;
         if(CollisionDetection::findCollisions(ball, window->getWalls(), walls)){
 
-//            ball->setAx(0.0);
-//            ball->setAy(0.0);
+            bool verticalCollision = false;
+            bool horizontalCollision = false;
 
-            if(walls[0].isVertical()){
-                ball->setVx(-ball->getVx() / 2);
-            }else{
-                ball->setVy(-ball->getVy() / 2);
+            for(auto &wall : walls){
+                if(!verticalCollision && wall.isVertical()) verticalCollision = true;
+                if(!horizontalCollision && !wall.isVertical()) horizontalCollision = true;
             }
+
+            if(verticalCollision){
+                ball->setX(ball->getX() - ball->getVx());
+                if(ball->getVx() > 0){
+                    ball->setVx(-0.01);
+                }else{
+                    ball->setVx(0.01);
+                }
+                ball->setAx(0);
+            }
+
+            if(horizontalCollision){
+                ball->setY(ball->getY() - ball->getVy());
+                if(ball->getVy() > 0){
+                    ball->setVy(-0.01);
+                }else{
+                    ball->setVy(0.01);
+                }
+                ball->setAy(0);
+            }
+
+        }else{
+            ball->setAx(angleModel->getAngleY() / 10);
+            ball->setAy(-angleModel->getAngleX() / 10);
         }
+
+
+        CollisionDetection::findCollisions(ball, window->getWalls(), walls);
 
         ball->updatePosition();
 
-        //point temp égal à la variable globale car on peut pas passer de pointeur en paramètre, c'est super.
         if(CollisionDetection::hasArrived(ball, window->getEndPoint())){
             cout << "Tu es arrive !!" << endl;
         }

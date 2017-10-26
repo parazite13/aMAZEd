@@ -18,11 +18,11 @@ private:
     bool vertical;
 
     cv::Point2d start;
-
     cv::Point2d end;
+
 public:
 
-    double const THICKNESS = 0.02;
+    double constexpr static THICKNESS = 0.02;
 
     Wall();
     Wall(const Wall &wall);
