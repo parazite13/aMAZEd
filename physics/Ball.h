@@ -5,7 +5,25 @@
 
 class Ball  {
 private:
-    double x;    //position selon l'axe x
+    double nextX;
+    double nextY;
+    double nextZ;
+    double x;
+public:
+    double getNextX() const;
+
+    void setNextX(double nextX);
+
+    double getNextY() const;
+
+    void setNextY(double nextY);
+
+    double getNextZ() const;
+
+    void setNextZ(double nextZ);
+
+private:
+    //position selon l'axe x
     double y;    //position selon l'axe y
     double z;    //position selon l'axe z
     double r;    //rayon de la boule

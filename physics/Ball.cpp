@@ -4,6 +4,9 @@ Ball::Ball(double x, double y, double r, GLint m) {
     this->x = x;
     this->y = y;
     this->z = -r;
+    this->nextX = x;
+    this->nextY = y;
+    this->nextZ = -r;
     this->r = r;
     this->m = m;
     this->vx = 0;
@@ -100,27 +103,41 @@ void Ball::draw(){
 }
 
 void Ball::updatePosition() {
+
     vx += ax;
     vy += ay;
 
-    x += vx;
-    y += vy;
+    if(vx > 0.03) vx = 0.03;
+    if(vy > 0.03) vy = 0.03;
 
-//    if(x > 1 - r && vx > 0){
-//        x = 1 - r;
-//        vx = 0.0;
-//    }
-//    if(x < r && vx < 0){
-//        x = r;
-//        vx = 0.0;
-//    }
-//
-//    if(y > 1 - r && vy > 0){
-//        y = 1 - r;
-//        vy = 0.0;
-//    }
-//    if(y < r && vy < 0){
-//        y = r;
-//        vy = 0.0;
-//    }
+    x = nextX;
+    y = nextY;
+
+    nextX += vx;
+    nextY += vy;
+
+}
+
+double Ball::getNextX() const {
+    return nextX;
+}
+
+void Ball::setNextX(double nextX) {
+    Ball::nextX = nextX;
+}
+
+double Ball::getNextY() const {
+    return nextY;
+}
+
+void Ball::setNextY(double nextY) {
+    Ball::nextY = nextY;
+}
+
+double Ball::getNextZ() const {
+    return nextZ;
+}
+
+void Ball::setNextZ(double nextZ) {
+    Ball::nextZ = nextZ;
 }
