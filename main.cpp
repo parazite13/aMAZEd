@@ -13,7 +13,7 @@ AngleModel *angleModel = nullptr;
 Ball *ball = nullptr;
 
 /// Pour afficher les FPS
-int frame=0,time,timebase=0;
+int frame=0,mytime,timebase=0;
 double fps = 0.0;
 
 /// Prototypes des fonctions de ce fichier
@@ -60,10 +60,10 @@ void loop(int){
 
     /// Affichage FPS
     frame++;
-    time = glutGet(GLUT_ELAPSED_TIME);
-    if (time - timebase > 1000) {
-        fps = frame * 1000.0 / (time - timebase);
-        timebase = time;
+    mytime = glutGet(GLUT_ELAPSED_TIME);
+    if (mytime - timebase > 1000) {
+        fps = frame * 1000.0 / (mytime - timebase);
+        timebase = mytime;
         frame = 0;
     }
     window->setFps(fps);
@@ -116,19 +116,16 @@ void loop(int){
         }
 
 
-        CollisionDetection::findCollisions(ball, window->getWalls(), walls);
-
         ball->updatePosition();
-
+        
         if(CollisionDetection::hasArrived(ball, window->getEndPoint())){
-            glutLeaveMainLoop();
             destroyAllWindows();
             namedWindow("Congratulations");
-            Mat frame = Mat(200, 380, CV_8UC3, Scalar(0,0,0));
+            Mat frame = Mat(200, 380, CV_8UC3, Scalar(0, 0, 0));
             putText(frame, "You are aMAZEing !", Point2i(10, 100), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
             imshow("Congratulations", frame);
             waitKey(0);
-            return;
+            exit(0);
         }
 
         double p[16];
@@ -138,6 +135,7 @@ void loop(int){
         window->setProjectionMatrix(p);
         window->setModelviewMatrix(m);
     }
+
 
     glutPostRedisplay();
 
@@ -191,10 +189,10 @@ void setupMaze(){
     }
 
     /// Murs extérieurs
-    walls.emplace_back(Point2d(0, 0), Point2d(0, 1));
-    walls.emplace_back(Point2d(1, 1), Point2d(0, 1));
-    walls.emplace_back(Point2d(1, 1), Point2d(1, 0));
-    walls.emplace_back(Point2d(1, 0), Point2d(0, 0));
+//    walls.emplace_back(Point2d(0, 0), Point2d(0, 1));
+//    walls.emplace_back(Point2d(1, 1), Point2d(0, 1));
+//    walls.emplace_back(Point2d(1, 1), Point2d(1, 0));
+//    walls.emplace_back(Point2d(1, 0), Point2d(0, 0));
 
     window->setWalls(walls);
 

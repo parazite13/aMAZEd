@@ -146,8 +146,8 @@ void OpenGL::CallBackDisplayFunc(){
 
     glutSwapBuffers();
 
-//    glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 0);
-    loop(0);
+    glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 0);
+//    loop(0);
 }
 
 void OpenGL::CallBackReshapeFunc(int w, int h){
