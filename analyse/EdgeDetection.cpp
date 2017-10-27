@@ -11,16 +11,10 @@ int StartingPointX = 0 ;
 int StartingPointY = 0;
 
 
-///Constructeur permettant la récupération du flux caméra
-EdgeDetection::EdgeDetection(CameraStream *cameraStream) {
-    this->cameraStream = cameraStream;
-}
-
 ///Fonction permettant la calibration de la couleur
-Mat EdgeDetection::colorCalibration(){
+Mat EdgeDetection::colorCalibration(Mat img){
     ///Initialisation des varaibles
     std::vector<Point2i> keypoints;
-    Mat img = this->cameraStream->getCurrentFrame();;
     Mat imgGrey;
     cvtColor(img, imgGrey, COLOR_RGB2GRAY);
 
@@ -39,9 +33,6 @@ Mat EdgeDetection::colorCalibration(){
     ///On créé le mask en fonction du niveau de gris précédent
     inRange(imgGrey, midGrey-40, midGrey+40, mask);
 
-//    namedWindow("mask2",WINDOW_AUTOSIZE);
-//    imshow("mask2", mask);
-
     ///On manipule le mask afin de ne récupérer que les 4 coins
     Mat maskTemp = mask.clone();
     cv::floodFill(maskTemp, cv::Point(StartingPointX, StartingPointY), CV_RGB(0, 0, 0));
@@ -50,12 +41,9 @@ Mat EdgeDetection::colorCalibration(){
     mask = maskTemp & mask;
     cv::floodFill(mask, cv::Point(0,0), CV_RGB(255, 255, 255));
 
-//    namedWindow("mask2b",WINDOW_AUTOSIZE);
-//    imshow("mask2b", mask);
-
     ///On enlève les parasites
     Mat kernel;
-    kernel = getStructuringElement(2, Size(15,15), Point(2,2));
+    kernel = getStructuringElement(2, Size(7,7), Point(2,2));
     dilate(mask, mask, kernel);
     erode(mask, mask, kernel);
 
@@ -168,7 +156,7 @@ vector<vector<Point2i>> EdgeDetection::filterDouble(vector<vector<Point2i>> vect
 vector<Point2i> EdgeDetection::getCorner(Mat img) {
 
     ///Initialisation des variables
-    Mat mask = colorCalibration();
+    Mat mask = colorCalibration(img);
     std::vector<KeyPoint> keypoints;
     vector<Point2i> coordCorner;
     ///Déclaration et calcul de l'image hsv
@@ -180,8 +168,8 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
     params.minThreshold = 0;
     params.maxThreshold = 100;
     params.filterByArea = true;
-    params.minArea = 400;
-    params.maxArea = 15000;
+    params.minArea = 100;
+    params.maxArea = 10000;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
     params.filterByInertia = false;
@@ -191,9 +179,8 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
 
 //    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 
-
     /// si plus de 4 composantes connexes trouvées on prends les 4 plus grosses
-    if(keypoints.size() > 3){
+    if(keypoints.size() > 3 && keypoints.size() == 6){
         for(int i=0 ; i<4 ; i++ ){
             int imax = 0;
             for(int j = 1 ; j< keypoints.size() ; j++) {
@@ -222,12 +209,9 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
 vector<Point2i> EdgeDetection::startEndDetection(Mat img) {
 
     ///Initialisation des variables
-    Mat mask = colorCalibration();
+    Mat mask = colorCalibration(img);
     std::vector<KeyPoint> point;
     vector<Point2i> coordPoint;
-    ///Déclaration et calcul de l'image hsv
-    Mat hsv;
-    cvtColor(img, hsv, CV_BGR2HSV);
 
     ///Paramètre pour la détection des composantes connexes
     SimpleBlobDetector::Params params;
@@ -235,7 +219,7 @@ vector<Point2i> EdgeDetection::startEndDetection(Mat img) {
     params.maxThreshold = 100;
     params.filterByArea = true;
     params.minArea = 100;
-    params.maxArea = 2000;
+    params.maxArea = 10000;
     params.filterByCircularity = false;
     params.filterByConvexity = false;
     params.filterByInertia = false;
@@ -243,10 +227,8 @@ vector<Point2i> EdgeDetection::startEndDetection(Mat img) {
     Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
     detector->detect(mask, point);
 
-
-
     /// si plus de 2 composantes connexes trouvées on prends les 2 plus petites
-    if(point.size() > 1){
+    if(point.size() > 1 && point.size() == 6){
         for(int i=0 ; i<2 ; i++ ){
             int imin = 0;
             for(int j = 1 ; j< point.size() ; j++) {
