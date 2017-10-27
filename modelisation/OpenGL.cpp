@@ -24,9 +24,9 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     this->p = new double[16];
     this->m = new double[16];
 
-    this->textMaze = imread("../assets/mazeGround.png"); //texture du sol du labyrinthe
-    this->textWall = imread("../assets/mazeWall.png"); //texture du mur du labyrinthe
-    this->textFlag = imread("../assets/mazeFlag.png"); //texture du drapeau d'arrivée
+    this->textMaze = imread(assetsPath + "assets/mazeGround.png"); //texture du sol du labyrinthe
+    this->textWall = imread(assetsPath + "assets/mazeWall.png"); //texture du mur du labyrinthe
+    this->textFlag = imread(assetsPath + "assets/mazeFlag.png"); //texture du drapeau d'arrivée
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE | GLUT_STENCIL);
     glutInitWindowSize(this->width, this->height);
@@ -63,7 +63,7 @@ void OpenGL::CallBackDisplayFunc(){
 
     if(CollisionDetection::hasArrived(ball, this->getEndPoint())){
         destroyAllWindows();
-        this->textCam = imread("../assets/mazeEnd.png");
+        this->textCam = imread(assetsPath + "assets/mazeEnd.png");
         putText(this->textCam, to_string( (int) difftime( time(nullptr), start)) + "s", Point2i(530, 492), FONT_HERSHEY_PLAIN, 4, Scalar(225, 238, 251), 4);
         endGame = true;
     }

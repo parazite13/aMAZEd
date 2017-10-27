@@ -12,6 +12,8 @@ class OpenGL : public GlutWindow{
 
 private:
 
+    std::string const assetsPath = "../";
+
     /// Nombre d'images par seconde
     int const MAX_FPS = 60;
 
