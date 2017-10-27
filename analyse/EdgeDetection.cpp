@@ -274,5 +274,12 @@ vector<Point2i> EdgeDetection::sortPoints(vector<Point2i> coord, Mat imgHSV){
     return coord;
 }
 
-
+bool EdgeDetection::isReversed(vector<Point2i> &corners){
+    vector<Point2i> cop;
+    for(int i = 0; i < corners.size(); i++){
+        cop.push_back(corners[i]);
+    }
+    sort(cop.begin(), cop.end(), sortByY);
+    return fabs(cop[0].x - cop[1].x) < fabs(cop[2].x - cop[3].x);
+}
 

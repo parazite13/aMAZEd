@@ -58,6 +58,12 @@ public:
      */
     std::vector<cv::Point2i> startEndDetection(cv::Mat img);
 
+    /**
+     *
+     * @param corners
+     * @return
+     */
+    bool isReversed(std::vector<cv::Point2i> &corners);
 };
 
 
