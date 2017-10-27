@@ -63,9 +63,8 @@ void OpenGL::CallBackDisplayFunc(){
 
     if(CollisionDetection::hasArrived(ball, this->getEndPoint())){
         destroyAllWindows();
-        this->textCam = Mat(300, 380, CV_8UC3, Scalar(0, 0, 0));
-        putText(this->textCam, "You are aMAZEing !", Point2i(10, 100), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
-        putText(this->textCam, "Your time : " + to_string( (int) difftime( time(nullptr), start)) + "s", Point2i(10, 200), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
+        this->textCam = imread("../assets/mazeEnd.png");
+        putText(this->textCam, to_string( (int) difftime( time(nullptr), start)) + "s", Point2i(530, 492), FONT_HERSHEY_PLAIN, 4, Scalar(225, 238, 251), 4);
         endGame = true;
     }
 
