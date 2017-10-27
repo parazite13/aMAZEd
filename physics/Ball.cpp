@@ -110,11 +110,18 @@ void Ball::updatePosition() {
     if(vx > 0.03) vx = 0.03;
     if(vy > 0.03) vy = 0.03;
 
+    if(nextX > 1.0f) nextX = 1.0f;
+    if(nextX < 0.0f) nextX = 0.0f;
+    if(nextY > 1.0f) nextY = 1.0f;
+    if(nextY < 0.0f) nextY = 0.0f;
+
+
     x = nextX;
     y = nextY;
 
     nextX += vx;
     nextY += vy;
+
 
 }
 

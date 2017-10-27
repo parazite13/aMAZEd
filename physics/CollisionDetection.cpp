@@ -16,7 +16,7 @@ bool CollisionDetection::intersect(Ball *ball, Wall wall) {
     Vector2d line(x1,y1,x2,y2);
 
     /// calculating line's perpendicular distance to ball
-    Vector2d c1_circle (ball->getX() - x1, ball->getY() - y1);
+    Vector2d c1_circle (ball->getNextX() - x1, ball->getNextY() - y1);
     double perpendicular = c1_circle.projectionOn(leftNormal);
 
     line.sortPoints();
@@ -48,12 +48,12 @@ bool CollisionDetection::withinLine(Ball *ball, Vector2d vect) {
     if(vect.get_x1() != vect.get_x2()) {
 
         /// si la position x est entre x1 et x2
-        if(ball->getX() >= xmin && ball->getX() <= xmax) {
+        if(ball->getNextX() >= xmin && ball->getNextX() <= xmax) {
             /// Dans le cas ou y1 != y2
             if(vect.get_y1() != vect.get_y2()) {
 
                 /// si la position y est entre y1 et y2
-                if(ball->getY() >= ymin && ball->getY() <= ymax)
+                if(ball->getNextY() >= ymin && ball->getNextY() <= ymax)
                     return true;
             }   /// Cas ou y1 = y2
             else {
@@ -63,7 +63,7 @@ bool CollisionDetection::withinLine(Ball *ball, Vector2d vect) {
     }
         /// x1 = x2, forcement y1 != y2
     else {
-        if(ball->getY() >= ymin && ball->getY() <= ymax)
+        if(ball->getNextY() >= ymin && ball->getNextY() <= ymax)
             return true;
     }
     return false;
@@ -81,10 +81,10 @@ bool CollisionDetection::findCollisions(Ball *ball, vector<Wall> walls, vector<W
 }
 
 bool CollisionDetection:: hasArrived(Ball *ball, cv::Point2d *point){
-    return ball->getX() >= point->x - ball->getR()
-           && ball->getX() <= point->x + ball->getR()
-           && ball->getY() >= point->y - ball->getR()
-           && ball->getY() <= point->y + ball->getR();
+    return ball->getNextX() >= point->x - ball->getR()
+           && ball->getNextX() <= point->x + ball->getR()
+           && ball->getNextY() >= point->y - ball->getR()
+           && ball->getNextY() <= point->y + ball->getR();
 }
 
 /////////////////////////////////////       TESTS         //////////////////////////////////////////////////

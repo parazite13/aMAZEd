@@ -184,7 +184,7 @@ void setupMaze(){
         /// Detection des murs
         lines = edgeDetection.linesDetection(currentFrame, coordCorner);
 
-    }while(coordCorner.size() != 4 &&  coordStartEnd.size() != 2);
+    }while(coordCorner.size() != 4 && coordStartEnd.size() != 2);
 
     Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 1, 10);
 
