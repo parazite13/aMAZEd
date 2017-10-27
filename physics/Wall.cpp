@@ -38,10 +38,10 @@ void Wall::draw() {
         glEnd();
 
         glBegin(GL_POLYGON);
-        glTexCoord2d(0, 0.2); glVertex3d(start.x - THICKNESS / 2, start.y, WALL_HEIGHT);// D
-        glTexCoord2d(1, 0.2); glVertex3d(end.x - THICKNESS / 2, end.y, WALL_HEIGHT);    // C
-        glTexCoord2d(1, 0.2); glVertex3d(end.x + THICKNESS / 2, end.y, WALL_HEIGHT);    // G
-        glTexCoord2d(0, 0.2); glVertex3d(start.x + THICKNESS / 2, start.y, WALL_HEIGHT);// H
+        glTexCoord2d(0.8, 1); glVertex3d(start.x - THICKNESS / 2, start.y, WALL_HEIGHT);// D
+        glTexCoord2d(1, 1); glVertex3d(end.x - THICKNESS / 2, end.y, WALL_HEIGHT);    // C
+        glTexCoord2d(1, 1); glVertex3d(end.x + THICKNESS / 2, end.y, WALL_HEIGHT);    // G
+        glTexCoord2d(0.8, 1); glVertex3d(start.x + THICKNESS / 2, start.y, WALL_HEIGHT);// H
         glEnd();
 
     }else{
@@ -75,10 +75,10 @@ void Wall::draw() {
         glEnd();
 
         glBegin(GL_POLYGON);
-        glTexCoord2d(0, 0.2); glVertex3d(start.x, start.y - THICKNESS / 2, WALL_HEIGHT);// D
+        glTexCoord2d(0.8, 1); glVertex3d(start.x, start.y - THICKNESS / 2, WALL_HEIGHT);// D
         glTexCoord2d(1, 0.2); glVertex3d(end.x, end.y - THICKNESS / 2, WALL_HEIGHT);    // C
         glTexCoord2d(1, 0.2); glVertex3d(end.x, end.y + THICKNESS / 2, WALL_HEIGHT);    // G
-        glTexCoord2d(0, 0.2); glVertex3d(start.x, start.y + THICKNESS / 2, WALL_HEIGHT);// H
+        glTexCoord2d(0.8, 1); glVertex3d(start.x, start.y + THICKNESS / 2, WALL_HEIGHT);// H
         glEnd();
 
     }

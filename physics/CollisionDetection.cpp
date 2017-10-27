@@ -15,9 +15,8 @@ bool CollisionDetection::intersect(Ball *ball, Wall wall) {
     Vector2d leftNormal(-(y2-y1), (x2-x1));
     Vector2d line(x1,y1,x2,y2);
 
-    /// calculating line's perpendicular distance to ball
+    /// Calcul de la distance perpendiculaire balle-mur
     Vector2d c1_circle (ball->getNextX() - x1, ball->getNextY() - y1);
-    /// Calcule de la distance perpendiculaire balle-mur
     double perpendicular = c1_circle.projectionOn(leftNormal);
 
     line.sortPoints();
