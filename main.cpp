@@ -140,7 +140,6 @@ void setupMaze(){
 
     /// Calibration des couleurs
     EdgeDetection edgeDetection = EdgeDetection(cameraStream);
-    edgeDetection.colorCalibration();
 
     Mat currentFrame = cameraStream->getCurrentFrame();
 
@@ -151,16 +150,13 @@ void setupMaze(){
     /// Tant que les 4 coins n'ont pas été détéctées
     do {
         currentFrame = cameraStream->getCurrentFrame();
-        do{
-            coordStartEnd = edgeDetection.startEndDetection(currentFrame);
-        }
-        while( coordStartEnd.size() != 2);
+        coordStartEnd = edgeDetection.startEndDetection(currentFrame);
         coordCorner = edgeDetection.getCorner(currentFrame);
 
         /// Detection des murs
         lines = edgeDetection.linesDetection(currentFrame, coordCorner);
 
-    }while(coordCorner.size() != 4);
+    }while(coordCorner.size() != 4 &&  coordStartEnd.size() != 2);
 
     Transformation *transformation = new Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 1, 10);
 
