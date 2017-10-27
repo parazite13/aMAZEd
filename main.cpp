@@ -62,7 +62,7 @@ void loop(int){
     frame++;
     time = glutGet(GLUT_ELAPSED_TIME);
     if (time - timebase > 1000) {
-        fps = frame*1000.0/(time-timebase);
+        fps = frame * 1000.0 / (time - timebase);
         timebase = time;
         frame = 0;
     }
@@ -75,7 +75,7 @@ void loop(int){
     coordCorner = edgeDetection.getCorner(currentFrame);
 
     /// Si les 4 coins ont été détéctées
-    if(coordCorner.size() == 4) {
+    if(coordCorner.size() == 4 && !edgeDetection.isReversed(coordCorner)) {
         Transformation transformation = Transformation(coordCorner, Size(currentFrame.cols, currentFrame.rows), 0.1, 20);
         angleModel->setCurrentTransformation(&transformation);
 
@@ -93,9 +93,9 @@ void loop(int){
             if(verticalCollision){
                 ball->setX(ball->getX() - ball->getVx());
                 if(ball->getVx() > 0){
-                    ball->setVx(-0.01);
+                    ball->setVx(-0.005);
                 }else{
-                    ball->setVx(0.01);
+                    ball->setVx(0.005);
                 }
                 ball->setAx(0);
             }
@@ -103,9 +103,9 @@ void loop(int){
             if(horizontalCollision){
                 ball->setY(ball->getY() - ball->getVy());
                 if(ball->getVy() > 0){
-                    ball->setVy(-0.01);
+                    ball->setVy(-0.005);
                 }else{
-                    ball->setVy(0.01);
+                    ball->setVy(0.005);
                 }
                 ball->setAy(0);
             }
@@ -121,7 +121,14 @@ void loop(int){
         ball->updatePosition();
 
         if(CollisionDetection::hasArrived(ball, window->getEndPoint())){
-            cout << "Tu es arrive !!" << endl;
+            glutLeaveMainLoop();
+            destroyAllWindows();
+            namedWindow("Congratulations");
+            Mat frame = Mat(200, 380, CV_8UC3, Scalar(0,0,0));
+            putText(frame, "You are aMAZEing !", Point2i(10, 100), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
+            imshow("Congratulations", frame);
+            waitKey(0);
+            return;
         }
 
         double p[16];
