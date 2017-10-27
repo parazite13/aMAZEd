@@ -34,11 +34,8 @@ private:
     double *m;
 
     double fps = 0.0;
-public:
-    void setFps(double fps);
 
-private:
-
+    time_t start;
     int height, width;
     int initPositionX, initPositionY;
 
@@ -66,11 +63,13 @@ public:
     void setWalls(const std::vector<Wall> &walls);
     void setProjectionMatrix(const double* p);
     void setModelviewMatrix(const double *m);
+    void setFps(double fps);
     void applicateMaterial();
     void applicateLight();
     void shadowMatrix(GLfloat points_plan[3][3], const GLfloat lightPos[4], GLfloat destMat[4][4]);
     void vecteurUnite(float *vector);
     void normal(float v[3][3], float out[3]);
+    void startTimer();
 
     OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream);
 

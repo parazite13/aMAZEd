@@ -49,8 +49,8 @@ Mat EdgeDetection::colorCalibration(Mat img){
 
     circle(mask, Point2i(StartingPointX,StartingPointY), 5, Scalar(150,150,150));
     ///Affichage du mask
-    namedWindow("mask3",WINDOW_AUTOSIZE);
-    imshow("mask3", mask);
+//    namedWindow("mask3",WINDOW_AUTOSIZE);
+//    imshow("mask3", mask);
 
     ///On retourne le mask
     return mask;
