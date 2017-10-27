@@ -6,8 +6,8 @@
 using namespace std;
 
 bool CollisionDetection::intersect(Ball *ball, Wall wall) {
-    //Vector2d leftNormal = vect.rotate(-90degres)
-    // i.e. v=[ax;ay] -> v_norm = [-ay:ax]
+    /// Calcul du vecteur leftNormal par rapport au mur
+    /// --> v=[ax;ay] -> v_leftNorm = [-ay;ax]
     double x1 = wall.getStart().x;
     double y1 = wall.getStart().y;
     double x2 = wall.getEnd().x;
@@ -15,13 +15,15 @@ bool CollisionDetection::intersect(Ball *ball, Wall wall) {
     Vector2d leftNormal(-(y2-y1), (x2-x1));
     Vector2d line(x1,y1,x2,y2);
 
-    //calculating line's perpendicular distance to ball
+    /// calculating line's perpendicular distance to ball
     Vector2d c1_circle (ball->getX() - x1, ball->getY() - y1);
     double perpendicular = c1_circle.projectionOn(leftNormal);
 
     line.sortPoints();
-    // True si collision, sinon false
-    if( fabs(perpendicular) <= ball->getR() ) {
+    /// Compare si la perpendiculaire generee depuis le cercle
+    /// est plus petite que le rayon de celui-ci + l'epaisseur des murs
+    /// True si collision, sinon false
+    if( fabs(perpendicular) <= ball->getR() + Wall::THICKNESS ) {
         return CollisionDetection::withinLine(ball, line) ;
     }
 
@@ -78,14 +80,14 @@ bool CollisionDetection::findCollisions(Ball *ball, vector<Wall> walls, vector<W
     return result;
 }
 
-/////////////////////////////////////       TESTS         //////////////////////////////////////////////////
-
 bool CollisionDetection:: hasArrived(Ball *ball, cv::Point2d *point){
     return ball->getX() >= point->x - ball->getR()
            && ball->getX() <= point->x + ball->getR()
            && ball->getY() >= point->y - ball->getR()
            && ball->getY() <= point->y + ball->getR();
 }
+
+/////////////////////////////////////       TESTS         //////////////////////////////////////////////////
 
 bool CollisionDetection::intersect(Circle circle, Vector2d vect) {
     //Vector2d leftNormal = vect.rotate(-90degres)
@@ -158,100 +160,6 @@ bool CollisionDetection::withinLine(Circle circle, Vector2d vect) {
     }
     return false;
 }
-
-// Given three colinear points p, q, r, the function checks if
-// point q lies on line segment 'pr'
-bool CollisionDetection::onSegment(cv::Point2d p, cv::Point2d q, cv::Point2d r) {
-    if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
-        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
-        return true;
-
-    return false;
-}
-
-// To find orientation of ordered triplet (p, q, r).
-// The function returns following values
-// 0 --> p, q and r are colinear
-// 1 --> Clockwise
-// 2 --> Counterclockwise
-int CollisionDetection::orientation(cv::Point2d p, cv::Point2d q, cv::Point2d r) {
-    // See http://www.geeksforgeeks.org/orientation-3-ordered-points/
-    // for details of below formula.
-    double val = (q.y - p.y) * (r.x - q.x) -
-              (q.x - p.x) * (r.y - q.y);
-
-    // incertitude
-    double epsilon = 10^-10;
-    if ( fabs(val+epsilon) < fabs(0+epsilon)) return 0;  // colinear
-
-    return (val > 0)? 1: 2; // clock or counterclock wise
-}
-
-// The main function that returns true if line segment 'p1q1'
-// and 'p2q2' intersect.
-//                                                p1                        q1                   p2&q2
-//bool CollisionDetection::doIntersect(cv::Point2d circleCenter, cv::Point2d nextPosition, Hitbox box) {
-//
-//    vector<cv::Point2d> nearestEdge = CollisionDetection::selectNearestEdge(circleCenter, box);
-//    cv::Point2d p2 = nearestEdge[0];
-//    cv::Point2d q2 = nearestEdge[1];
-//
-//    // Find the four orientations needed for general and
-//    // special cases
-//    int o1 = orientation(circleCenter, nextPosition, p2);
-//    int o2 = orientation(circleCenter, nextPosition, q2);
-//    int o3 = orientation(p2, q2, circleCenter);
-//    int o4 = orientation(p2, q2, nextPosition);
-//
-//    // General case
-//    if (o1 != o2 && o3 != o4)
-//        return true;
-//
-//    // Special Cases
-//    // p1, q1 and p2 are colinear and p2 lies on segment p1q1
-//    if (o1 == 0 && CollisionDetection::onSegment(circleCenter, p2, nextPosition)) return true;
-//
-//    // p1, q1 and p2 are colinear and q2 lies on segment p1q1
-//    if (o2 == 0 && CollisionDetection::onSegment(circleCenter, q2, nextPosition)) return true;
-//
-//    // p2, q2 and p1 are colinear and p1 lies on segment p2q2
-//    if (o3 == 0 && CollisionDetection::onSegment(p2, circleCenter, q2)) return true;
-//
-//    // p2, q2 and q1 are colinear and q1 lies on segment p2q2
-//    if (o4 == 0 && CollisionDetection::onSegment(p2, nextPosition, q2)) return true;
-//
-//    return false; // Doesn't fall in any of the above cases
-//}
-//
-//vector<cv::Point2d> CollisionDetection::selectNearestEdge(cv::Point2d circleCenter, Hitbox box) {
-//    vector<cv::Point2d> nearestEdge;
-//    cv::Point2d min1, min2;
-//
-//    // A(xa, ya) et B(xb, yb) -> distance AB² = (xb-xa)² + (yb-ya)²
-//    double distance;
-//    double distanceMin = 99999999;
-//    for(cv::Point2d point : box.vertices) {
-//        distance = (point.x - circleCenter.x)*(point.x - circleCenter.x) + (point.y -circleCenter.y)*(point.x - circleCenter.x);
-//        if(distance < distanceMin) {
-//            min1 = point;
-//            distanceMin = distance;
-//        }
-//    }
-//
-//    distanceMin = 99999999;
-//    for(cv::Point2d point : box.vertices) {
-//        distance = (point.x - circleCenter.x) + (point.y -circleCenter.y);
-//        if(distance < distanceMin && point != min1) {
-//            min2 = point;
-//            distanceMin = distance;
-//        }
-//    }
-//
-//    nearestEdge.push_back(min1);
-//    nearestEdge.push_back(min2);
-//
-//    return nearestEdge;
-//}
 
 /// Test !
 /// Separer le dessin de la creation sinon lors de l'affichage, les points reviennent a leur position d'origine dans l'objet lors d'un deplacement
