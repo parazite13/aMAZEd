@@ -90,16 +90,17 @@ void loop(int endGame){
         vector<Wall> walls;
         if(CollisionDetection::findCollisions(ball, window->getWalls(), walls)){
 
+            /// Detection de la nature de la collision
             bool verticalCollision = false;
             bool horizontalCollision = false;
-
             for(auto &wall : walls){
                 if(!verticalCollision && wall.isVertical()) verticalCollision = true;
                 if(!horizontalCollision && !wall.isVertical()) horizontalCollision = true;
             }
 
+            /// Collision verticale on rebondit selon l'axe X
             if(verticalCollision){
-                ball->setX(ball->getX() - ball->getVx());
+                ball->setNextX(ball->getNextX() - ball->getVx());
                 if(ball->getVx() > 0){
                     ball->setVx(-0.005);
                 }else{
@@ -108,8 +109,9 @@ void loop(int endGame){
                 ball->setAx(0);
             }
 
+            /// Collision horizontale on rebondit selon l'axe Y
             if(horizontalCollision){
-                ball->setY(ball->getY() - ball->getVy());
+                ball->setNextY(ball->getNextY() - ball->getVy());
                 if(ball->getVy() > 0){
                     ball->setVy(-0.005);
                 }else{
@@ -118,13 +120,36 @@ void loop(int endGame){
                 ball->setAy(0);
             }
 
+            ball->updatePosition();
+
+            /// S'il s'agit d'une collision sur le bout du mur
+            if(CollisionDetection::findCollisions(ball, window->getWalls(), walls)){
+                if(verticalCollision){
+                    ball->setNextY(ball->getNextY() - ball->getVy() * 2);
+                    if(ball->getVy() > 0){
+                        ball->setVy(-0.005);
+                    }else{
+                        ball->setVy(0.005);
+                    }
+                    ball->setAy(0);
+                }
+
+                if(horizontalCollision){
+                    ball->setNextX(ball->getNextX() - ball->getVx() * 2);
+                    if(ball->getVx() > 0){
+                        ball->setVx(-0.005);
+                    }else{
+                        ball->setVx(0.005);
+                    }
+                    ball->setAx(0);
+                }
+            }
+
         }else{
             ball->setAx(angleModel->getAngleY() / 10);
             ball->setAy(-angleModel->getAngleX() / 10);
+            ball->updatePosition();
         }
-
-
-        ball->updatePosition();
 
         double p[16];
         double m[16];
@@ -171,8 +196,8 @@ void setupMaze(){
     cv::Point2d pointModelStart = transformation->getModelPointFromImagePoint(coordStartEnd[0]);
 
     ///set la boule aux coordonnées du départ
-    ball->setX(pointModelStart.x);
-    ball->setY(pointModelStart.y);
+    ball->setNextX(pointModelStart.x);
+    ball->setNextY(pointModelStart.y);
 
     /// Calcul des coordonées des extrimités des murs
     vector<Wall> walls;
