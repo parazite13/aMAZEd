@@ -13,8 +13,6 @@ class CollisionDetection {
 private :
 
 public  :
-////////////////////////////    Collision detection    /////////////////////////////////
-
     /**
      * Le vecteur doit etre pre-traite avec sortPoints
      * Retourne vrai si la position x et y du cercle
@@ -24,6 +22,12 @@ public  :
 
     static bool hasArrived(Ball *ball, cv::Point2d *point);
 
+    /**
+     * Detecte si il y a une collision entre une ligne (+ une epaisseur) et la balle
+     * @param ball
+     * @param wall
+     * @return True si collision, false sinon
+     */
     static bool intersect(Ball *ball, Wall wall);
 
     /**
@@ -31,33 +35,6 @@ public  :
      *  La fonction renvoie false si aucun mur a ete touche, true sinon
      */
     static bool findCollisions(Ball *ball, std::vector<Wall> walls, std::vector<Wall> &touchedWalls);
-
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////    TESTS !     ///////////////////////////////////////////
-    // Test
-    struct Circle
-    {
-        float              radius;
-        std::vector<float> velocity;
-        cv::Point2d         center;
-    };
-
-    static Circle createCircle(float radius, cv::Point2d center) ;
-    static void drawCircle(Circle circle);
-
-
-    /**
-     * Le vecteur doit etre pre-traite avec sortPoints
-     * Retourne vrai si la position x et y du cercle
-     * et comprise entre le x1;y1 et x2;y2 du vecteur
-     */
-    static bool withinLine(Circle circle, Vector2d vect);
-
-    static bool intersect(Circle circle, Vector2d vect);
-
-///////////////////////////////////////////////////////////////////////////////////////
 
 };
 
