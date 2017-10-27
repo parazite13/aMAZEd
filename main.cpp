@@ -12,6 +12,10 @@ OpenGL *window = nullptr;
 AngleModel *angleModel = nullptr;
 Ball *ball = nullptr;
 
+/// Pour afficher les FPS
+int frame=0,time,timebase=0;
+double fps = 0.0;
+
 /// Prototypes des fonctions de ce fichier
 void loop(int);
 void setupMaze();
@@ -53,6 +57,16 @@ int main(int argc, char** argv){
 }
 
 void loop(int){
+
+    /// Affichage FPS
+    frame++;
+    time = glutGet(GLUT_ELAPSED_TIME);
+    if (time - timebase > 1000) {
+        fps = frame*1000.0/(time-timebase);
+        timebase = time;
+        frame = 0;
+    }
+    window->setFps(fps);
 
     EdgeDetection edgeDetection = EdgeDetection(cameraStream);
 
@@ -117,7 +131,6 @@ void loop(int){
         window->setProjectionMatrix(p);
         window->setModelviewMatrix(m);
     }
-
 
     glutPostRedisplay();
 

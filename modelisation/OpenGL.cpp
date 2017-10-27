@@ -55,6 +55,7 @@ void OpenGL::CallBackDisplayFunc(){
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
     this->textCam = cameraStream->getCurrentFrame();
+    putText(this->textCam, to_string(fps), Point2i(0, 10), FONT_HERSHEY_PLAIN, 0.9, Scalar(0, 0, 255), 1);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -145,7 +146,8 @@ void OpenGL::CallBackDisplayFunc(){
 
     glutSwapBuffers();
 
-    glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 0);
+//    glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 0);
+    loop(0);
 }
 
 void OpenGL::CallBackReshapeFunc(int w, int h){
@@ -417,6 +419,10 @@ void OpenGL::setModelviewMatrix(const double *m) {
     for(int i = 0; i < 16; i++){
         this->m[i] = m[i];
     }
+}
+
+void OpenGL::setFps(double fps) {
+    OpenGL::fps = fps;
 }
 
 

@@ -13,7 +13,7 @@ class OpenGL : public GlutWindow{
 private:
 
     /// Nombre d'images par seconde
-    int const MAX_FPS = 100;
+    int const MAX_FPS = 60;
 
     /// Parametre du tableau
     double const FLAG_PIPE_HEIGHT = 0.15;
@@ -32,6 +32,12 @@ private:
 
     /// Matrice de Modelview
     double *m;
+
+    double fps = 0.0;
+public:
+    void setFps(double fps);
+
+private:
 
     int height, width;
     int initPositionX, initPositionY;
