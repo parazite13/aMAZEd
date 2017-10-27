@@ -183,7 +183,6 @@ vector<Point2i> EdgeDetection::getCorner(Mat img) {
     detector->detect(mask, keypoints);
 
 //    drawKeypoints( mask, keypoints, mask, Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
-    cout << "GETCORNER : " << keypoints.size() << endl;
 
     /// si plus de 4 composantes connexes trouvées on prends les 4 plus grosses
     if(keypoints.size() > 3 && keypoints.size() == 6){
@@ -232,8 +231,6 @@ vector<Point2i> EdgeDetection::startEndDetection(Mat img) {
 
     Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
     detector->detect(mask, point);
-
-    cout << "DEBUT FIN : " << point.size() << endl;
 
     /// si plus de 2 composantes connexes trouvées on prends les 2 plus petites
     if(point.size() > 1 && point.size() == 6){
