@@ -6,17 +6,17 @@
 class Vector2d {
     private:
         double _x1, _y1, _x2, _y2;
-        double _X, _Y;        // pour les calculs
+        double _X, _Y;                  // pour les calculs
 
     public:
-        /// constructeur
+        /// constructeurs
         Vector2d(double x1, double y1, double x2, double y2);
         Vector2d(double X, double Y);
 
         /// Projette le vecteur sur v2
         double projectionOn(Vector2d v2);
 
-        // "Oriente" le vecteur de gauche a droite, bas en haut
+        /// "Oriente" le vecteur de gauche a droite, bas en haut
         void sortPoints();
 
         void setMagnitude(double magnitude);

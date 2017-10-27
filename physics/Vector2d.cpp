@@ -48,6 +48,8 @@ double Vector2d::getMagnitude() {
     return sqrt( this->get_X()*this->get_X() + this->get_Y()*this->get_Y() );
 }
 
+/// A priori une division par 0 ne devrait pas arriver
+/// cela voudrait dire qu'un mur a X = Y, donc un point
 Vector2d Vector2d::normalize() {
     double magnitude = this->getMagnitude();
     Vector2d normalizedVect(this->get_X()/magnitude, this->get_Y()/magnitude);
