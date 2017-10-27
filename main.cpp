@@ -129,9 +129,9 @@ void loop(int){
             glutLeaveMainLoop();
             destroyAllWindows();
             namedWindow("Congratulations");
-            Mat frame = Mat(200, 400, CV_8UC3, Scalar(0,0,0));
+            Mat frame = Mat(300, 380, CV_8UC3, Scalar(0,0,0));
             putText(frame, "You are aMAZEing !", Point2i(10, 100), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
-            putText(frame, "Your time : " + to_string( (int) difftime( time(nullptr), start)), Point2i(10, 200), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
+            putText(frame, "Your time : " + to_string( (int) difftime( time(nullptr), start)) + "s", Point2i(10, 200), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
             imshow("Congratulations", frame);
             waitKey(0);
             return;
