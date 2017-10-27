@@ -3,6 +3,7 @@
 #include "modelisation/Transformation.h"
 #include "physics/AngleModel.h"
 #include "physics/CollisionDetection.h"
+#include <ctime>
 
 using namespace cv;
 using namespace std;
@@ -12,8 +13,10 @@ OpenGL *window = nullptr;
 AngleModel *angleModel = nullptr;
 Ball *ball = nullptr;
 
+time_t start;
+
 /// Pour afficher les FPS
-int frame=0,mytime,timebase=0;
+int frame=0,myTime,timebase=0;
 double fps = 0.0;
 
 /// Prototypes des fonctions de ce fichier
@@ -35,6 +38,7 @@ int main(int argc, char** argv){
 
         /// Si on appuie sur la touche espace
         if(waitKey(30) == 32) break;
+
     }
 
     Mat currentFrame = cameraStream->getCurrentFrame();
@@ -45,6 +49,7 @@ int main(int argc, char** argv){
     window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), ball, cameraStream);
 
     setupMaze();
+    start = time(nullptr);
 
     destroyWindow("aMAZEd Calibration");
     glutMaster->CallGlutMainLoop();
@@ -60,10 +65,10 @@ void loop(int){
 
     /// Affichage FPS
     frame++;
-    mytime = glutGet(GLUT_ELAPSED_TIME);
-    if (mytime - timebase > 1000) {
-        fps = frame * 1000.0 / (mytime - timebase);
-        timebase = mytime;
+    myTime = glutGet(GLUT_ELAPSED_TIME);
+    if (myTime - timebase > 1000) {
+        fps = frame * 1000.0 / (myTime - timebase);
+        timebase = myTime;
         frame = 0;
     }
     window->setFps(fps);
@@ -121,8 +126,10 @@ void loop(int){
         if(CollisionDetection::hasArrived(ball, window->getEndPoint())){
             destroyAllWindows();
             namedWindow("Congratulations");
+
             Mat frame = Mat(200, 380, CV_8UC3, Scalar(0, 0, 0));
             putText(frame, "You are aMAZEing !", Point2i(10, 100), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
+            putText(frame, "Your time : " + to_string( (int) difftime( time(nullptr), start)) + "s", Point2i(10, 200), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
             imshow("Congratulations", frame);
             waitKey(0);
             exit(0);
