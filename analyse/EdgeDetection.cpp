@@ -250,28 +250,33 @@ vector<vector<Point2i>> EdgeDetection::linesDetection(Mat img, vector<Point2i> c
 //    imshow("canny", imgCanny);
 
     return(filterDouble(vectLines,10));
+    //return(vectLines);
 }
 
 
 ///Fonction permettant de trier les murs
 vector<vector<Point2i>> EdgeDetection::filterDouble(vector<vector<Point2i>> vectLines, int thresh){
-    vector<vector<Point2i>> linesFilter ;
-
-    for(vector<Point2i> line : vectLines){
-        bool isGood = true ;
-        for(vector<Point2i> goodLine : linesFilter){
-
-            isGood &= (( line[0].x < goodLine[0].x - thresh ) || (line[0].x > goodLine[0].x + thresh )
-                       ||( line[0].y < goodLine[0].y - thresh ) || (line[0].y > goodLine[0].y + thresh )
-                       ||   ( line[1].x < goodLine[1].x - thresh ) || (line[1].x > goodLine[1].x + thresh )
-                       || ( line[1].y < goodLine[1].y - thresh ) || (line[1].y > goodLine[1].y + thresh ))
-
-                      &&      (( line[0].x < goodLine[0].x - thresh ) || (line[0].x > goodLine[0].x + thresh )
-                               ||( line[0].y < goodLine[0].y - thresh ) || (line[0].y > goodLine[0].y + thresh )
-                               ||   ( line[1].x < goodLine[1].x - thresh ) || (line[1].x > goodLine[1].x + thresh )
-                               || ( line[1].y < goodLine[1].y - thresh ) || (line[1].y > goodLine[1].y + thresh ));
+    vector<vector<Point2i>> linesFilter = vectLines ;
+    int suppressed = 0;
+    int incr = 0 ;
+    for(vector<Point2i> line : vectLines) {
+        bool isGood = true;
+        for (vector<Point2i> goodLine : linesFilter) {
+            if (line[0].x != goodLine[0].x && line[0].y != goodLine[0].y && line[1].x != goodLine[1].x &&
+                line[1].y != goodLine[1].y) {
+                int minX = min(goodLine[0].x, goodLine[1].x) - thresh;
+                int maxX = max(goodLine[0].x, goodLine[1].x) + thresh;
+                int minY = min(goodLine[0].y, goodLine[1].y) - thresh;
+                int maxY = max(goodLine[0].y, goodLine[1].y) + thresh;
+                isGood &= (line[0].x > maxX || line[0].x < minX || line[0].y > maxY || line[0].y < minY) ||
+                          (line[1].x > maxX || line[1].x < minX || line[1].y > maxY || line[1].y < minY);
+            }
         }
-        if (isGood) linesFilter.push_back(line) ;
+        if (!isGood) {
+            linesFilter.erase(linesFilter.begin()+ (incr-suppressed));
+            suppressed ++;
+        }
+        incr++ ;
     }
 
     return linesFilter ;
