@@ -68,7 +68,7 @@ void loop(int){
     }
     window->setFps(fps);
 
-    EdgeDetection edgeDetection = EdgeDetection(cameraStream);
+    EdgeDetection edgeDetection = EdgeDetection();
 
     vector<Point2i> coordCorner;
     Mat currentFrame = cameraStream->getCurrentFrame();
@@ -139,7 +139,7 @@ void loop(int){
 void setupMaze(){
 
     /// Calibration des couleurs
-    EdgeDetection edgeDetection = EdgeDetection(cameraStream);
+    EdgeDetection edgeDetection = EdgeDetection();
 
     Mat currentFrame = cameraStream->getCurrentFrame();
 

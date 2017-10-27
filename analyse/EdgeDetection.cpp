@@ -11,11 +11,6 @@ int StartingPointX = 0 ;
 int StartingPointY = 0;
 
 
-///Constructeur permettant la récupération du flux caméra
-EdgeDetection::EdgeDetection(CameraStream *cameraStream) {
-    this->cameraStream = cameraStream;
-}
-
 ///Fonction permettant la calibration de la couleur
 Mat EdgeDetection::colorCalibration(Mat img){
     ///Initialisation des varaibles

@@ -11,8 +11,6 @@ class EdgeDetection {
 
 private:
 
-    CameraStream *cameraStream;
-
     /** Trie le vector de 4 points comme suit:
      *          le point particulier (couleur différente) en premier et les suivants dans le sens horaire
      *
@@ -31,8 +29,6 @@ private:
     std::vector<std::vector<cv::Point2i>> filterDouble(std::vector<std::vector<cv::Point2i>> vectLines, int thresh);
 
 public:
-
-    explicit EdgeDetection(CameraStream *cameraStream);
 
      /** Permet de trouver la teinte et la saturation des coins du plan
      */
