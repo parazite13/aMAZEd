@@ -71,7 +71,7 @@ bool CollisionDetection::withinLine(Ball *ball, Vector2d vect) {
 
 bool CollisionDetection::findCollisions(Ball *ball, vector<Wall> walls, vector<Wall> &touchedWalls) {
     bool result = false;
-    for(Wall current: walls) {
+    for(Wall &current: walls) {
         if(intersect(ball, current)) {
             touchedWalls.push_back(current);
             result = true;
@@ -81,10 +81,10 @@ bool CollisionDetection::findCollisions(Ball *ball, vector<Wall> walls, vector<W
 }
 
 bool CollisionDetection:: hasArrived(Ball *ball, cv::Point2d *point){
-    return ball->getNextX() >= point->x - ball->getR()
-           && ball->getNextX() <= point->x + ball->getR()
-           && ball->getNextY() >= point->y - ball->getR()
-           && ball->getNextY() <= point->y + ball->getR();
+    return ball->getX() >= point->x - ball->getR()
+           && ball->getX() <= point->x + ball->getR()
+           && ball->getY() >= point->y - ball->getR()
+           && ball->getY() <= point->y + ball->getR();
 }
 
 
