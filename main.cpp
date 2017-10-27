@@ -3,6 +3,7 @@
 #include "modelisation/Transformation.h"
 #include "physics/AngleModel.h"
 #include "physics/CollisionDetection.h"
+#include <ctime>
 
 using namespace cv;
 using namespace std;
@@ -13,7 +14,7 @@ AngleModel *angleModel = nullptr;
 Ball *ball = nullptr;
 
 /// Pour afficher les FPS
-int frame=0,time,timebase=0;
+int frame=0,myTime,timebase=0;
 double fps = 0.0;
 
 /// Prototypes des fonctions de ce fichier
@@ -35,6 +36,7 @@ int main(int argc, char** argv){
 
         /// Si on appuie sur la touche espace
         if(waitKey(30) == 32) break;
+
     }
 
     Mat currentFrame = cameraStream->getCurrentFrame();
@@ -45,6 +47,7 @@ int main(int argc, char** argv){
     window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), ball, cameraStream);
 
     setupMaze();
+    window->startTimer();
 
     destroyWindow("aMAZEd Calibration");
     glutMaster->CallGlutMainLoop();
@@ -56,14 +59,19 @@ int main(int argc, char** argv){
     return 0;
 }
 
-void loop(int){
+void loop(int endGame){
+
+    if(endGame == 1){
+        waitKey(0);
+        exit(0);
+    }
 
     /// Affichage FPS
     frame++;
-    time = glutGet(GLUT_ELAPSED_TIME);
-    if (time - timebase > 1000) {
-        fps = frame * 1000.0 / (time - timebase);
-        timebase = time;
+    myTime = glutGet(GLUT_ELAPSED_TIME);
+    if (myTime - timebase > 1000) {
+        fps = frame * 1000.0 / (myTime - timebase);
+        timebase = myTime;
         frame = 0;
     }
     window->setFps(fps);
@@ -82,16 +90,17 @@ void loop(int){
         vector<Wall> walls;
         if(CollisionDetection::findCollisions(ball, window->getWalls(), walls)){
 
+            /// Detection de la nature de la collision
             bool verticalCollision = false;
             bool horizontalCollision = false;
-
             for(auto &wall : walls){
                 if(!verticalCollision && wall.isVertical()) verticalCollision = true;
                 if(!horizontalCollision && !wall.isVertical()) horizontalCollision = true;
             }
 
+            /// Collision verticale on rebondit selon l'axe X
             if(verticalCollision){
-                ball->setX(ball->getX() - ball->getVx());
+                ball->setNextX(ball->getNextX() - ball->getVx());
                 if(ball->getVx() > 0){
                     ball->setVx(-0.005);
                 }else{
@@ -100,8 +109,9 @@ void loop(int){
                 ball->setAx(0);
             }
 
+            /// Collision horizontale on rebondit selon l'axe Y
             if(horizontalCollision){
-                ball->setY(ball->getY() - ball->getVy());
+                ball->setNextY(ball->getNextY() - ball->getVy());
                 if(ball->getVy() > 0){
                     ball->setVy(-0.005);
                 }else{
@@ -110,25 +120,35 @@ void loop(int){
                 ball->setAy(0);
             }
 
+            ball->updatePosition();
+
+            /// S'il s'agit d'une collision sur le bout du mur
+            if(CollisionDetection::findCollisions(ball, window->getWalls(), walls)){
+                if(verticalCollision){
+                    ball->setNextY(ball->getNextY() - ball->getVy() * 2);
+                    if(ball->getVy() > 0){
+                        ball->setVy(-0.005);
+                    }else{
+                        ball->setVy(0.005);
+                    }
+                    ball->setAy(0);
+                }
+
+                if(horizontalCollision){
+                    ball->setNextX(ball->getNextX() - ball->getVx() * 2);
+                    if(ball->getVx() > 0){
+                        ball->setVx(-0.005);
+                    }else{
+                        ball->setVx(0.005);
+                    }
+                    ball->setAx(0);
+                }
+            }
+
         }else{
             ball->setAx(angleModel->getAngleY() / 10);
             ball->setAy(-angleModel->getAngleX() / 10);
-        }
-
-
-        CollisionDetection::findCollisions(ball, window->getWalls(), walls);
-
-        ball->updatePosition();
-
-        if(CollisionDetection::hasArrived(ball, window->getEndPoint())){
-            glutLeaveMainLoop();
-            destroyAllWindows();
-            namedWindow("Congratulations");
-            Mat frame = Mat(200, 380, CV_8UC3, Scalar(0,0,0));
-            putText(frame, "You are aMAZEing !", Point2i(10, 100), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
-            imshow("Congratulations", frame);
-            waitKey(0);
-            return;
+            ball->updatePosition();
         }
 
         double p[16];
@@ -138,6 +158,7 @@ void loop(int){
         window->setProjectionMatrix(p);
         window->setModelviewMatrix(m);
     }
+
 
     glutPostRedisplay();
 
@@ -175,8 +196,8 @@ void setupMaze(){
     cv::Point2d pointModelStart = transformation->getModelPointFromImagePoint(coordStartEnd[0]);
 
     ///set la boule aux coordonnées du départ
-    ball->setX(pointModelStart.x);
-    ball->setY(pointModelStart.y);
+    ball->setNextX(pointModelStart.x);
+    ball->setNextY(pointModelStart.y);
 
     /// Calcul des coordonées des extrimités des murs
     vector<Wall> walls;
@@ -191,10 +212,10 @@ void setupMaze(){
     }
 
     /// Murs extérieurs
-    walls.emplace_back(Point2d(0, 0), Point2d(0, 1));
-    walls.emplace_back(Point2d(1, 1), Point2d(0, 1));
-    walls.emplace_back(Point2d(1, 1), Point2d(1, 0));
-    walls.emplace_back(Point2d(1, 0), Point2d(0, 0));
+//    walls.emplace_back(Point2d(0, 0), Point2d(0, 1));
+//    walls.emplace_back(Point2d(1, 1), Point2d(0, 1));
+//    walls.emplace_back(Point2d(1, 1), Point2d(1, 0));
+//    walls.emplace_back(Point2d(1, 0), Point2d(0, 0));
 
     window->setWalls(walls);
 

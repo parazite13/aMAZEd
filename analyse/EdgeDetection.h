@@ -31,6 +31,10 @@ private:
 public:
 
      /** Permet de trouver la teinte et la saturation des coins du plan
+      * @param
+     *      img : l'image où trouver les lignes
+     * @return
+     *      renvoie un mask du plan
      */
     cv::Mat colorCalibration(cv::Mat img);
 

@@ -1,6 +1,8 @@
 #include <GL/freeglut.h>
 #include <opencv2/core/core.hpp>
 #include "OpenGL.h"
+#include "../physics/CollisionDetection.h"
+#include <ctime>
 
 using namespace cv;
 using namespace std;
@@ -49,6 +51,8 @@ OpenGL::~OpenGL(){
 
 void OpenGL::CallBackDisplayFunc(){
 
+    bool endGame = false;
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     glDisable(GL_DEPTH_TEST);
@@ -56,6 +60,14 @@ void OpenGL::CallBackDisplayFunc(){
     glEnable(GL_TEXTURE_2D);
     this->textCam = cameraStream->getCurrentFrame();
     putText(this->textCam, to_string(fps), Point2i(0, 10), FONT_HERSHEY_PLAIN, 0.9, Scalar(0, 0, 255), 1);
+
+    if(CollisionDetection::hasArrived(ball, this->getEndPoint())){
+        destroyAllWindows();
+        this->textCam = Mat(300, 380, CV_8UC3, Scalar(0, 0, 0));
+        putText(this->textCam, "You are aMAZEing !", Point2i(10, 100), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
+        putText(this->textCam, "Your time : " + to_string( (int) difftime( time(nullptr), start)) + "s", Point2i(10, 200), FONT_HERSHEY_PLAIN, 2, Scalar(0, 255, 0), 2);
+        endGame = true;
+    }
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -65,89 +77,97 @@ void OpenGL::CallBackDisplayFunc(){
     glLoadIdentity();
     drawBackground();
 
-    glDisable(GL_CULL_FACE);
-    glMatrixMode(GL_PROJECTION);
-    glLoadMatrixd(this->p);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glLoadMatrixd(this->m);
+    if(!endGame) {
+
+        glDisable(GL_CULL_FACE);
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(this->p);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glLoadMatrixd(this->m);
 //    drawAxes();
 
-    drawMazeGround();
+        drawMazeGround();
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHTING);
-    drawWalls();
-    drawFlag();
-    glDisable(GL_TEXTURE_2D);
-    applicateMaterial();
-    glColor3f(1, 1, 1);
-    ball->draw();
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_LIGHTING);
+        drawWalls();
+        drawFlag();
+        glDisable(GL_TEXTURE_2D);
+        applicateMaterial();
+        glColor3f(1, 1, 1);
+        ball->draw();
 
 
 ////////
 
-    GLfloat sol[3][3] = {{0.0f,0.0f,0.0f},
-                         {1.0f,0.0f,0.0f},
-                         {0.0f,1.0f,0.0f}};
-    GLfloat lightPos[4] = {0.0f, 0.0f, 10.0f, 1.0};
-    GLfloat ombre[4][4];
+        GLfloat sol[3][3] = {{0.0f, 0.0f, 0.0f},
+                             {1.0f, 0.0f, 0.0f},
+                             {0.0f, 1.0f, 0.0f}};
+        GLfloat lightPos[4] = {0.0f, 0.0f, 10.0f, 1.0};
+        GLfloat ombre[4][4];
 
-    // On utilise les faces avants seulement
-    // ... il faudrait l'utiliser tout le temps ... mais il y a des polygones à l'envers :-( !! )
-    // ... il y a un "soucis avec ça" ...
+        // On utilise les faces avants seulement
+        // ... il faudrait l'utiliser tout le temps ... mais il y a des polygones à l'envers :-( !! )
+        // ... il y a un "soucis avec ça" ...
 
-    // La matrice de transformation
-    shadowMatrix(sol, lightPos, ombre);
+        // La matrice de transformation
+        shadowMatrix(sol, lightPos, ombre);
 
-    // Ecriture dans le stencil buffer
-    // Pour écrire dans le stencil buffer, on utilise ni
-    // le test de profondeur et on ne tient pas compte de la couleur
-    glDisable(GL_DEPTH_TEST);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    // Tracé dans le stencil buffer (les points du sol à '1')
-    glEnable(GL_STENCIL_TEST);
-    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, 1, 0xffffffff); // c'est ce '1'
-    drawMazeGround();
+        // Ecriture dans le stencil buffer
+        // Pour écrire dans le stencil buffer, on utilise ni
+        // le test de profondeur et on ne tient pas compte de la couleur
+        glDisable(GL_DEPTH_TEST);
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        // Tracé dans le stencil buffer (les points du sol à '1')
+        glEnable(GL_STENCIL_TEST);
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+        glStencilFunc(GL_ALWAYS, 1, 0xffffffff); // c'est ce '1'
+        drawMazeGround();
 
-    // On a a nouveau besoin du tampon de profondeur et de la couleur
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
+        // On a a nouveau besoin du tampon de profondeur et de la couleur
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glEnable(GL_DEPTH_TEST);
 
-    // On va afficher seulement les valeurs '1' du stencil
-    glStencilFunc(GL_EQUAL, 1, 0xffffffff); // c'est ce '1'
-    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+        // On va afficher seulement les valeurs '1' du stencil
+        glStencilFunc(GL_EQUAL, 1, 0xffffffff); // c'est ce '1'
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-    // Tracé
-    // Pour la transparence de l'ombre
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // Pour pouvoir utiliser glColor
-    glDisable(GL_LIGHTING);
-    // Ombre noire, "transparence" -> 0.5
-    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+        // Tracé
+        // Pour la transparence de l'ombre
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // Pour pouvoir utiliser glColor
+        glDisable(GL_LIGHTING);
+        // Ombre noire, "transparence" -> 0.5
+        glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 
-    glEnable(GL_CULL_FACE);
-    glPushMatrix();
-    glMultMatrixf((GLfloat *) ombre);
-    ball->draw();
-    glPopMatrix();
+        glEnable(GL_CULL_FACE);
+        glPushMatrix();
+        glMultMatrixf((GLfloat *) ombre);
+        ball->draw();
+        glPopMatrix();
 
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_LIGHTING);
-    glDisable(GL_BLEND);
-    glDisable(GL_STENCIL_TEST);
-
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_LIGHTING);
+        glDisable(GL_BLEND);
+        glDisable(GL_STENCIL_TEST);
+    }
 //////
 
     glutSwapBuffers();
 
-//    glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 0);
-    loop(0);
+    if(endGame){
+        glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 1);
+    }else{
+        glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 0);
+    }
+
+
 }
 
 void OpenGL::CallBackReshapeFunc(int w, int h){
@@ -423,6 +443,10 @@ void OpenGL::setModelviewMatrix(const double *m) {
 
 void OpenGL::setFps(double fps) {
     OpenGL::fps = fps;
+}
+
+void OpenGL::startTimer() {
+    this->start = time(nullptr);
 }
 
 
