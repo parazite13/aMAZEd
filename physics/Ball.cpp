@@ -108,7 +108,9 @@ void Ball::updatePosition() {
     vy += ay;
 
     if(vx > 0.03) vx = 0.03;
+    if(vx < -0.03) vx = -0.03;
     if(vy > 0.03) vy = 0.03;
+    if(vy < -0.03) vy = -0.03;
 
     if(nextX > 1.0f) nextX = 1.0f;
     if(nextX < 0.0f) nextX = 0.0f;
