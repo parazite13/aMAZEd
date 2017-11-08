@@ -3,7 +3,6 @@
 #include "modelisation/Transformation.h"
 #include "physics/AngleModel.h"
 #include "physics/CollisionDetection.h"
-#include <ctime>
 
 using namespace cv;
 using namespace std;
@@ -23,6 +22,7 @@ void setupMaze();
 
 int main(int argc, char** argv){
 
+    bool anaglyph = true;
     ball = new Ball(0.5, 0.5, 0.03, 50);
     cameraStream = new CameraStream();
     namedWindow("aMAZEd Calibration");
@@ -44,7 +44,7 @@ int main(int argc, char** argv){
     int width = 1000; /// Largeur de la fenêtre
 
     auto *glutMaster = new GlutMaster();
-    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), ball, cameraStream);
+    window = new OpenGL(glutMaster, width, (int)(width / ratio), 0, 0, (char*)("aMAZEd"), ball, cameraStream, anaglyph);
 
     setupMaze();
     window->startTimer();
@@ -158,7 +158,6 @@ void loop(int endGame){
         window->setProjectionMatrix(p);
         window->setModelviewMatrix(m);
     }
-
 
     glutPostRedisplay();
 

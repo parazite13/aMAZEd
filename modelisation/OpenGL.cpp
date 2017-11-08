@@ -10,7 +10,7 @@ using namespace std;
 /// Fonction appelé en boucle et définie dans le main
 void loop(int);
 
-OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream){
+OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream, bool anaglyph){
 
     this->ball = ball;
     this->cameraStream = cameraStream;
@@ -24,9 +24,15 @@ OpenGL::OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInit
     this->p = new double[16];
     this->m = new double[16];
 
-    this->textMaze = imread(assetsPath + "assets/mazeGround.png"); //texture du sol du labyrinthe
-    this->textWall = imread(assetsPath + "assets/mazeWall.png"); //texture du mur du labyrinthe
-    this->textFlag = imread(assetsPath + "assets/mazeFlag.png"); //texture du drapeau d'arrivée
+    this->anaglyph = anaglyph;
+
+    this->textMaze = imread(assetsPath + "assets/mazeGround.png"); ///texture du sol du labyrinthe
+    this->textWall = imread(assetsPath + "assets/mazeWall.png"); ///texture du mur du labyrinthe
+    this->textFlag = imread(assetsPath + "assets/mazeFlag.png"); ///texture du drapeau d'arrivée
+
+    if(anaglyph){
+        this->textCam = imread(assetsPath + "assets/noir.jpg"); /// fond noir
+    }
 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE | GLUT_STENCIL);
     glutInitWindowSize(this->width, this->height);
@@ -54,13 +60,21 @@ void OpenGL::CallBackDisplayFunc(){
     bool endGame = false;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     glEnable(GL_TEXTURE_2D);
-    this->textCam = cameraStream->getCurrentFrame();
+
+    if(!anaglyph){
+        this->textCam = cameraStream->getCurrentFrame();
+    }else{
+        rectangle(this->textCam, Point(0, 0), Point(200, 200), Scalar(0, 0, 0), -1);
+    }
+
     putText(this->textCam, to_string(fps), Point2i(0, 10), FONT_HERSHEY_PLAIN, 0.9, Scalar(0, 0, 255), 1);
 
+    /// Si la balle atteint la fin on affiche l'écran de fin avec le temps
     if(CollisionDetection::hasArrived(ball, this->getEndPoint())){
         destroyAllWindows();
         this->textCam = imread(assetsPath + "assets/mazeEnd.png");
@@ -85,81 +99,32 @@ void OpenGL::CallBackDisplayFunc(){
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glLoadMatrixd(this->m);
-//    drawAxes();
+        if(anaglyph){
+            double offset;
+            offset = 0.01;
 
-        drawMazeGround();
+            double modelviewTemp[16];
 
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LIGHT0);
-        glEnable(GL_LIGHTING);
-        drawWalls();
-        drawFlag();
-        glDisable(GL_TEXTURE_2D);
-        applicateMaterial();
-        glColor3f(1, 1, 1);
-        ball->draw();
+            offsetCamera(offset, modelviewTemp);
+            glLoadMatrixd(modelviewTemp);
+            filtreRouge();
+            drawElements();
 
+            offsetCamera(-offset, modelviewTemp);
+            glLoadMatrixd(modelviewTemp);
+            filtreBleu();
+            drawElements();
 
-////////
+        }else{
+            glLoadMatrixd(this->m);
+            drawElements();
+        }
 
-        GLfloat sol[3][3] = {{0.0f, 0.0f, 0.0f},
-                             {1.0f, 0.0f, 0.0f},
-                             {0.0f, 1.0f, 0.0f}};
-        GLfloat lightPos[4] = {0.0f, 0.0f, 10.0f, 1.0};
-        GLfloat ombre[4][4];
-
-        // On utilise les faces avants seulement
-        // ... il faudrait l'utiliser tout le temps ... mais il y a des polygones à l'envers :-( !! )
-        // ... il y a un "soucis avec ça" ...
-
-        // La matrice de transformation
-        shadowMatrix(sol, lightPos, ombre);
-
-        // Ecriture dans le stencil buffer
-        // Pour écrire dans le stencil buffer, on utilise ni
-        // le test de profondeur et on ne tient pas compte de la couleur
-        glDisable(GL_DEPTH_TEST);
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        // Tracé dans le stencil buffer (les points du sol à '1')
-        glEnable(GL_STENCIL_TEST);
-        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-        glStencilFunc(GL_ALWAYS, 1, 0xffffffff); // c'est ce '1'
-        drawMazeGround();
-
-        // On a a nouveau besoin du tampon de profondeur et de la couleur
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glEnable(GL_DEPTH_TEST);
-
-        // On va afficher seulement les valeurs '1' du stencil
-        glStencilFunc(GL_EQUAL, 1, 0xffffffff); // c'est ce '1'
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
-        // Tracé
-        // Pour la transparence de l'ombre
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        // Pour pouvoir utiliser glColor
-        glDisable(GL_LIGHTING);
-        // Ombre noire, "transparence" -> 0.5
-        glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-
-        glEnable(GL_CULL_FACE);
-        glPushMatrix();
-        glMultMatrixf((GLfloat *) ombre);
-        ball->draw();
-        glPopMatrix();
-
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_LIGHTING);
-        glDisable(GL_BLEND);
-        glDisable(GL_STENCIL_TEST);
     }
-//////
 
     glutSwapBuffers();
 
+    /// Si la partie est terminée renvoie 1 pour signaler l'arret du programme
     if(endGame){
         glutTimerFunc((unsigned int)1000 / MAX_FPS, loop, 1);
     }else{
@@ -272,6 +237,92 @@ void OpenGL::drawBackground() {
     glTexCoord2d(1, 0);glVertex3f(1.0f, 1.0f, -5.0f);
     glTexCoord2d(1, 1);glVertex3f(1.0f, 0.0f, -5.0f);
     glEnd();
+}
+
+void OpenGL::drawElements() {
+
+    drawMazeGround();
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHTING);
+    drawWalls();
+    drawFlag();
+    glDisable(GL_TEXTURE_2D);
+    applicateMaterial();
+    glColor3f(1, 1, 1);
+    ball->draw();
+
+
+    GLfloat sol[3][3] = {{0.0f, 0.0f, 0.0f},
+                         {1.0f, 0.0f, 0.0f},
+                         {0.0f, 1.0f, 0.0f}};
+    GLfloat lightPos[4] = {0.0f, 0.0f, 10.0f, 1.0};
+    GLfloat ombre[4][4];
+
+    // On utilise les faces avants seulement
+    // ... il faudrait l'utiliser tout le temps ... mais il y a des polygones à l'envers :-( !! )
+    // ... il y a un "soucis avec ça" ...
+
+    // La matrice de transformation
+    shadowMatrix(sol, lightPos, ombre);
+
+    // Ecriture dans le stencil buffer
+    // Pour écrire dans le stencil buffer, on utilise ni
+    // le test de profondeur et on ne tient pas compte de la couleur
+    glDisable(GL_DEPTH_TEST);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    // Tracé dans le stencil buffer (les points du sol à '1')
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 0xffffffff); // c'est ce '1'
+    drawMazeGround();
+
+    // On a a nouveau besoin du tampon de profondeur et de la couleur
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+
+    // On va afficher seulement les valeurs '1' du stencil
+    glStencilFunc(GL_EQUAL, 1, 0xffffffff); // c'est ce '1'
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+    // Tracé
+    // Pour la transparence de l'ombre
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // Pour pouvoir utiliser glColor
+    glDisable(GL_LIGHTING);
+    // Ombre noire, "transparence" -> 0.5
+    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+
+    glEnable(GL_CULL_FACE);
+    glPushMatrix();
+    glMultMatrixf((GLfloat *) ombre);
+    ball->draw();
+    glPopMatrix();
+
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_LIGHTING);
+    glDisable(GL_BLEND);
+    glDisable(GL_STENCIL_TEST);
+
+
+}
+
+void OpenGL::offsetCamera(double offset, double *mat) {
+    for(int i = 0; i < 16; i++){
+        mat[i] = this->m[i];
+    }
+    mat[12] += offset;
+}
+
+void OpenGL::filtreRouge() {
+    glColorMask(GL_TRUE, GL_FALSE, GL_FALSE, GL_TRUE);
+}
+
+void OpenGL::filtreBleu() {
+    glColorMask(GL_FALSE, GL_FALSE, GL_TRUE, GL_TRUE);
 }
 
 void OpenGL::applicateMaterial() {

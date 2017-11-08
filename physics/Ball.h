@@ -9,18 +9,6 @@ private:
     double nextY;
     double nextZ;
     double x;
-public:
-    double getNextX() const;
-
-    void setNextX(double nextX);
-
-    double getNextY() const;
-
-    void setNextY(double nextY);
-
-    double getNextZ() const;
-
-    void setNextZ(double nextZ);
 
 private:
     //position selon l'axe x
@@ -77,6 +65,18 @@ public:
     void setVz(double vz);
 
     GLint getM() const;
+
+    double getNextX() const;
+
+    void setNextX(double nextX);
+
+    double getNextY() const;
+
+    void setNextY(double nextY);
+
+    double getNextZ() const;
+
+    void setNextZ(double nextZ);
 
     void draw();
 

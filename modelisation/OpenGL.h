@@ -14,6 +14,8 @@ private:
 
     std::string const assetsPath = "../";
 
+    bool anaglyph;
+
     /// Nombre d'images par seconde
     int const MAX_FPS = 60;
 
@@ -73,7 +75,7 @@ public:
     void normal(float v[3][3], float out[3]);
     void startTimer();
 
-    OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream);
+    OpenGL(GlutMaster * glutMaster, int setWidth, int setHeight, int setInitPositionX, int setInitPositionY, char * title, Ball *ball, CameraStream * cameraStream, bool anaglyph);
 
     ~OpenGL() override;
     void CallBackDisplayFunc() override;
@@ -83,6 +85,14 @@ public:
     void CallBackIdleFunc() override;
 
     const std::vector<Wall> &getWalls() const;
+
+    void filtreRouge();
+
+    void filtreBleu();
+
+    void drawElements();
+
+    void offsetCamera(double offset, double *pDouble);
 };
 
 
