@@ -80,7 +80,7 @@ public:
     ~OpenGL() override;
     void CallBackDisplayFunc() override;
     void CallBackReshapeFunc(int w, int h) override;
-
+    void CallBackKeyboardFunc(unsigned char key, int x, int y) override;
 
     void CallBackIdleFunc() override;
 

@@ -13,7 +13,7 @@ AngleModel *angleModel = nullptr;
 Ball *ball = nullptr;
 
 /// Pour afficher les FPS
-int frame=0,myTime,timebase=0;
+int frame = 0, myTime, timebase = 0;
 double fps = 0.0;
 
 /// Prototypes des fonctions de ce fichier
@@ -22,7 +22,7 @@ void setupMaze();
 
 int main(int argc, char** argv){
 
-    bool anaglyph = true;
+    bool anaglyph;
     ball = new Ball(0.5, 0.5, 0.03, 50);
     cameraStream = new CameraStream();
     namedWindow("aMAZEd Calibration");
@@ -30,12 +30,22 @@ int main(int argc, char** argv){
     while(true){
 
         Mat currentFrame = cameraStream->getCurrentFrame();
-        putText(currentFrame, "Press space bar to start calibration", Point2i(0, currentFrame.rows), FONT_HERSHEY_PLAIN, 2, Scalar(0, 0, 255), 2);
+        putText(currentFrame, "Press enter to play 3D mode", Point2i(0, currentFrame.rows - 50), FONT_HERSHEY_PLAIN, 2, Scalar(0, 0, 255), 2);
+        putText(currentFrame, "Press space bar to play normal mode", Point2i(0, currentFrame.rows), FONT_HERSHEY_PLAIN, 2, Scalar(0, 0, 255), 2);
 
         imshow("aMAZEd Calibration", currentFrame);
 
-        /// Si on appuie sur la touche espace
-        if(waitKey(30) == 32) break;
+        /// Si on appuie sur :
+        /// touche espace => normal mode
+        /// touche entrée => anaglyph mode
+        int key = waitKey(30);
+        if(key == 32){
+            anaglyph = false;
+            break;
+        } else if(key == 13){
+            anaglyph = true;
+            break;
+        }
 
     }
 

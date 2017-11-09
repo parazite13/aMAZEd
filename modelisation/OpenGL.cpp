@@ -73,6 +73,7 @@ void OpenGL::CallBackDisplayFunc(){
     }
 
     putText(this->textCam, to_string(fps), Point2i(0, 10), FONT_HERSHEY_PLAIN, 0.9, Scalar(0, 0, 255), 1);
+    putText(this->textCam, "press q to exit", Point2i(this->textCam.cols - 80, 10), FONT_HERSHEY_PLAIN, 0.6, Scalar(0, 0, 255), 1);
 
     /// Si la balle atteint la fin on affiche l'écran de fin avec le temps
     if(CollisionDetection::hasArrived(ball, this->getEndPoint())){
@@ -141,6 +142,12 @@ void OpenGL::CallBackReshapeFunc(int w, int h){
 
     glViewport(0, 0, this->width, this->height);
     CallBackDisplayFunc();
+}
+
+void OpenGL::CallBackKeyboardFunc(unsigned char key, int x, int y) {
+    if(key == 'q'){
+        exit(0);
+    }
 }
 
 void OpenGL::CallBackIdleFunc(){
@@ -241,7 +248,7 @@ void OpenGL::drawBackground() {
 
 void OpenGL::drawElements() {
 
-    drawMazeGround();
+    if(!anaglyph) drawMazeGround();
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHT0);
@@ -315,6 +322,8 @@ void OpenGL::offsetCamera(double offset, double *mat) {
         mat[i] = this->m[i];
     }
     mat[12] += offset;
+
+    if(offset > 0) mat[14] += offset;
 }
 
 void OpenGL::filtreRouge() {
